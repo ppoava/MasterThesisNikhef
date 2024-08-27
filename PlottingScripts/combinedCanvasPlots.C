@@ -4,6 +4,24 @@
 
 // The script is not very flexible, but it is not intended this way, the plots are specifically
 // used for my thesis.
+// Changes can be made straightforwardly.
+
+// The macro uses an automasation procedure to set up the histograms more directly.
+// The histograms that we want to plot originate from charm (cc) and beauty (bb) productions,
+// from different simulation settings (e.g. 214, 215), from different balancing pairs (e.g. B+B-, B+Lb, ...)
+// and different multiplicity bins (e.g. all bins, 3 bins, 7 bins, ...).
+
+// In order to draw everything in the most direct way, the histogram vectors are prepared in two steps:
+// 1. In the first step we take the root files with all these different origins and add them together in a way which
+// makes sense. The same-sign pairs (B+B+, D+D+, B+Lb0) are not physical (physical correlations come from quark-antiquark pairs)
+// and are subtracted from like-sign pairs. In this script this is done in a later stage, as it is only necessary for
+// balancing studies.
+// Plotting options and names are given to this vector, though many are overwritten in later stages, hence they can be
+// considered for removal. The names are useful for debugging, however.
+// 2. The vectors originating from different correlations and multiplicity binnings are gathered together and
+// put into one big vector. This big vector is given to the main plotting function and is looped over.
+// A more direct procedure is used sometimes in this macro, where histograms are taken directly from the source root files.
+// These steps can also be automised, but their application is very niche and automisation reduces the clarity of the code.
 
 // Calculates the geometric mean of a pair x1 and x2
 Double_t geometricMean(Double_t x1, Double_t x2) {
@@ -18,6 +36,7 @@ void setCanvasMargins(TCanvas *canvas, double_t LeftMargin, double_t RightMargin
 }
 
 // Simple function that sets the axes and other configurations to draw DPhi correlations
+// Sometimes the function settings are overwritten later, which is slightly messy, but can be improved if desired.
 void histDPhiMakeUp(TH1D* hist, Color_t color, Double_t DrawYmin, Double_t DrawYmax) {
   hist->SetStats(0);
   hist->SetLineColor(color);
@@ -31,6 +50,9 @@ void histDPhiMakeUp(TH1D* hist, Color_t color, Double_t DrawYmin, Double_t DrawY
   hist->GetYaxis()->SetRangeUser(DrawYmin, DrawYmax);
 }
 
+// The structs defined below are used to be consistent with other scripts I used, though
+// most settings are overwritten later in this script.
+// I would not worry too much about what happens here.
 struct BaseLabels {
   const char* LegendTitle;
   Color_t Color;
@@ -52,7 +74,6 @@ struct HistNameAndLabels : public BaseLabels {
    const char* HistName;
    const char* TrPtName;
 };
-
 
 struct HistAndLabels : public BaseLabels {
   const char* TriggerName;
@@ -1367,6 +1388,8 @@ std::vector<HistAndLabels> configureInput(std::string path,
 					  std::vector<RootFileAndLabels> vRootFileAndLabels,
 					  std::vector<HistNameAndLabels> vHistNameAndLabels) {
   // Returns vector: LegendTitle, Color, LineStyle, LineWidth, TriggerName, AssociateName, OSHist, SSHist, DrawYmin, DrawYmax
+  // This vector is used in the function above to couple settings and histograms together in order
+  // to automise the plotting procedure.
 
   // const char* CombinedLegendTitle;
   std::vector<HistAndLabels> vHistAndLabels;
@@ -1526,6 +1549,7 @@ int combinedCanvasPlots() {
 
   bool write = false;
   const char* writeName = "215";
+  // MAKE SURE this is equal to the path which is used above (e.g. path_bb_215 and path_cc_215 for "215")
   
   HarryPlotter(vhBpAs,
 	       vhBpAsMult,
