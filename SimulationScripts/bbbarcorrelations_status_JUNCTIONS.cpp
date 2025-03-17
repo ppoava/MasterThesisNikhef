@@ -117,11 +117,13 @@ int main(int argc, char** argv) {
 	nEvents = pythia.mode("Main:numberOfEvents");
 	
 	// Create a random seed so that the outcome will be truly random
-	Int_t proccessid = getpid();
-	string seedstr = "Random:seed = "+std::to_string((time(0)+proccessid)%900000000);
-	pythia.readString("Random:setSeed = on");
-	pythia.readString(seedstr);
-	
+        Int_t proccessid = getpid();
+        int seedMod1 = std::stoi(argv[2]);
+        int seedMod2 = std::stoi(argv[3]);
+        string seedstr = "Random:seed = "+std::to_string((time(0)+proccessid+seedMod1+seedMod2)%900000000);
+        pythia.readString("Random:setSeed = on");
+        pythia.readString(seedstr);
+
 	// Initializing simulation
 	pythia.init();
 	cout<<"Generating "<<nEvents<<" events!"<<endl;
