@@ -8,20 +8,32 @@
 "cc_bar_complete_root_dir": "complete_root_cc_215",
 "beauty_correlations_to_analyse": [
     {
+      "trigger": "Bˆ{+}",
+      "associateOS": "Bˆ{-}",
+      "associateSS": "Bˆ{+}",
       "OS": "BplusBminus.root",
       "SS": "BplusBplus.root"
     },
     {
+      "trigger": "Bˆ{+}",
+      "associateOS": "#barBˆ{0}",
+      "associateSS": "Bˆ{0}",
       "OS": "BplusBzerobar.root",
       "SS": "BplusBzero.root"
     }
   ],
   "charm_correlations_to_analyse": [
     {
+      "trigger": "Dˆ{+}",
+      "associateOS": "Dˆ{-}",
+      "associateSS": "Dˆ{+}",
       "OS": "DplusDminus.root",
       "SS": "DplusDplus.root"
     },
     {
+      "trigger": "Dˆ{+}",
+      "associateOS": "#barDˆ{0}",
+      "associateSS": "Dˆ{0}",
       "OS": "DplusDzerobar.root",
       "SS": "DplusDzero.root"
     }
