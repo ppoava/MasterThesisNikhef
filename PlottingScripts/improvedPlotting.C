@@ -9,13 +9,33 @@
 
 using json = nlohmann::json;
 
+// To be taken from the configuration.json and send to main code
+struct CONFIGS {
+    std::vector<std::string> vTUNES;
+};
+
 // Define a structure to hold OS and SS correlation file names
 struct TriggerAssociateOSandSS {
     std::string OS;
     std::string SS;
 };
 
+struct HistogramAndTriggerPtHistogramNames {
+    std::string hDPhi;
+    std::string hTrPt;
+};
+
+void normalise(TH1D* hist, TH1D* trig, Double_t xmin, Double_t xmax) {
+	Int_t bin_start = trig->FindBin(xmin);
+	Int_t bin_finish = trig->FindBin(xmax);
+	Double_t integral = trig->Integral(bin_start, bin_finish);
+	std::cout << "function integral = " << integral << std::endl;
+	hist->Scale(1./integral);
+}
+
 void readConfig() {
+
+    std::cout << "Reading configuration.json" << std::endl;
 
     // Open the JSON configuration file
     std::ifstream configFile("configuration.json");
@@ -58,14 +78,38 @@ void readConfig() {
 
     // Which correlations need to be analysed?
     std::vector<TriggerAssociateOSandSS> vBeautyTriggerAssociateOSandSS;
-    for (const auto& filePair : config["correlations_to_analyse"]) {
+    for (const auto& configPair : config["beauty_correlations_to_analyse"]) {
         TriggerAssociateOSandSS pair;
-        pair.OS = filePair["OS"].get<std::string>();
-        pair.SS = filePair["SS"].get<std::string>();
+        pair.OS = configPair["OS"].get<std::string>();
+        pair.SS = configPair["SS"].get<std::string>();
         vBeautyTriggerAssociateOSandSS.push_back(pair);
     }
     for (const auto& pair : vBeautyTriggerAssociateOSandSS) {
         std::cout << "OS File: " << pair.OS << ", SS File: " << pair.SS << std::endl;
+    }
+    std::vector<TriggerAssociateOSandSS> vCharmTriggerAssociateOSandSS;
+    for (const auto& configPair : config["charm_correlations_to_analyse"]) {
+        TriggerAssociateOSandSS pair;
+        pair.OS = configPair["OS"].get<std::string>();
+        pair.SS = configPair["SS"].get<std::string>();
+        vCharmTriggerAssociateOSandSS.push_back(pair);
+    }
+    for (const auto& pair : vBeautyTriggerAssociateOSandSS) {
+        std::cout << "OS File: " << pair.OS << ", SS File: " << pair.SS << std::endl;
+    }
+    std::cout << std::endl;
+
+    // Which histograms need to be analysed?
+    // i.e. which dependencies (pT, mult, etc.)
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames;
+    for (const auto& configPair : config["histograms_to_analyse"]) {
+        HistogramAndTriggerPtHistogramNames pair;
+        pair.hDPhi = configPair["hDPhi"].get<std::string>();
+        pair.hTrPt = configPair["hTrPt"].get<std::string>();
+        vHistogramAndTriggerPtHistogramNames.push_back(pair);
+    }
+    for (const auto& pair : vHistogramAndTriggerPtHistogramNames) {
+        std::cout << "hDPhi: " << pair.hDPhi << ", hTrPt: " << pair.hTrPt << std::endl;
     }
     std::cout << std::endl;
 
