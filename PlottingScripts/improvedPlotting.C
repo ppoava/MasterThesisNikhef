@@ -187,8 +187,8 @@ void calculateYields(CONFIGS configs_from_json, const char* FLAVOUR) {
             TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
             std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
 
-            TFile *OStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "/" + fileNamesOSandSS.SS).c_str());
-            TFile *SStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "/" + fileNamesOSandSS.SS).c_str());
+            TFile *OStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.SS).c_str());
+            TFile *SStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.SS).c_str());
 
             std::cout << std::endl;
 
