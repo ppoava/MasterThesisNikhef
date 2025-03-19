@@ -11,6 +11,9 @@ using json = nlohmann::json;
 
 // Define a structure to hold OS and SS correlation file names
 struct TriggerAssociateOSandSS {
+    std::string trigger;
+    std::string associateOS;
+    std::string associateSS;
     std::string OS;
     std::string SS;
 };
@@ -94,6 +97,9 @@ CONFIGS readConfig() {
     std::vector<TriggerAssociateOSandSS> vBeautyTriggerAssociateOSandSS;
     for (const auto& configPair : config["beauty_correlations_to_analyse"]) {
         TriggerAssociateOSandSS pair;
+        pair.trigger = configPair["trigger"].get<std::string>();
+        pair.associateOS = configPair["associateOS"].get<std::string>();
+        pair.associateSS = configPair["associateSS"].get<std::string>();
         pair.OS = configPair["OS"].get<std::string>();
         pair.SS = configPair["SS"].get<std::string>();
         vBeautyTriggerAssociateOSandSS.push_back(pair);
@@ -104,6 +110,9 @@ CONFIGS readConfig() {
     std::vector<TriggerAssociateOSandSS> vCharmTriggerAssociateOSandSS;
     for (const auto& configPair : config["charm_correlations_to_analyse"]) {
         TriggerAssociateOSandSS pair;
+        pair.trigger = configPair["trigger"].get<std::string>();
+        pair.associateOS = configPair["associateOS"].get<std::string>();
+        pair.associateSS = configPair["associateSS"].get<std::string>();
         pair.OS = configPair["OS"].get<std::string>();
         pair.SS = configPair["SS"].get<std::string>();
         vCharmTriggerAssociateOSandSS.push_back(pair);
@@ -145,7 +154,79 @@ CONFIGS readConfig() {
 
 } // readConfig()
 
+
+// Yields are calculated by looping over TUNES (e.g. MONASH),
+// then ASSOCIATES (e.g. B-)
+// and then DEPENDENCIES (e.g. DPhiLL)
+// Function needs to be called for the FLAVOUR seperately (e.g. Beauty)
+// The output is a 3D vector with the structure
+// v[TUNE][ASSOCIATE][DEPENDENCY]
+void calculateYields(CONFIGS configs_from_json, const char* FLAVOUR) {
+
+    std::cout << "*** Calculating yields for " << FLAVOUR << " ***" << std::endl;
+
+    // Retrieve settings from configuration.json
+    std::string base_dir = configs_from_json.base_dir;
+    std::vector<std::string> vTUNES = configs_from_json.vTUNES;
+    std::string complete_root_dir;
+    if (strcmp(FLAVOUR, "BEAUTY") == 0) { complete_root_dir = configs_from_json.bbBarDir; }
+    if (strcmp(FLAVOUR, "CHARM") == 0)  { complete_root_dir = configs_from_json.ccBarDir; }
+    std::vector<TriggerAssociateOSandSS> vTriggerAssociateOSandSS;
+    if (strcmp(FLAVOUR, "BEAUTY") == 0) { vTriggerAssociateOSandSS = configs_from_json.vBeautyTriggerAssociateOSandSS; }
+    if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
+
+    // Loop over TUNES
+    for (Int_t i=0; i<vTUNES.size(); i++) {
+        std::string TUNE = vTUNES[i];
+        std::cout << "starting loop over " << TUNE << std::endl;
+        std::cout << std::endl;
+
+        // Loop over ASSOCIATES
+        for (Int_t j=0; j<vTriggerAssociateOSandSS.size(); j++) {
+            TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
+            std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+
+            TFile *OStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "/" + fileNamesOSandSS.SS).c_str());
+            TFile *SStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "/" + fileNamesOSandSS.SS).c_str());
+
+            std::cout << std::endl;
+
+            // Loop over DEPENDENCIES
+            for (Int_t k=0; k<vHistogramAndTriggerPtHistogramNames.size(); k++) {
+                HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
+                std::cout << "analysing histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+
+                TH1D* hDPhiOS = (TH1D*)OStree->Get((hDPhiAndhTrPtNames.hDPhi).c_str());
+	            TH1D* hDPhiSS = (TH1D*)SStree->Get((hDPhiAndhTrPtNames.hDPhi).c_str());
+	            TH1D* hTrPtOS = (TH1D*)OStree->Get((hDPhiAndhTrPtNames.hTrPt).c_str());
+	            TH1D* hTrPtSS = (TH1D*)SStree->Get((hDPhiAndhTrPtNames.hTrPt).c_str());
+
+	            if (strcmp((fileNamesOSandSS.trigger).c_str(), 
+                           (fileNamesOSandSS.associateSS).c_str()) == 0) { 
+                    hDPhiSS->Scale(0.5); } // Prevent double-counting
+	
+	            hDPhiOS->Scale(1/hTrPtOS->Integral());
+	            hDPhiSS->Scale(1/hTrPtSS->Integral());
+
+                std::cout << std::endl;
+            } // Loop over DEPENDENCIES
+
+        } // Loop over ASSOCIATES
+
+    } // Loop over TUNES
+
+    std::cout << std::endl;
+
+    return;
+}
+
+
 int improvedPlotting() {
+
     CONFIGS configs_from_json = readConfig();
+    calculateYields(configs_from_json, "BEAUTY");
+    calculateYields(configs_from_json, "CHARM");
+
     return 0;
 }
