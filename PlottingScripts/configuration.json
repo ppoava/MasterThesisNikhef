@@ -1,5 +1,11 @@
 {
-"path_to_bb_bar_complete_root_dir": "/Users/pv280546/Documents/GitHub/MasterThesisNikhef/RootFiles/complete_root_bb_215",
+"base_dir": "/Users/pv280546/Documents/GitHub/MasterThesisNikhef/RootFiles",
+"PYTHIA_TUNES": [
+    "MONASH",
+    "JUNCTIONS"
+],
+"bb_bar_complete_root_dir": "complete_root_bb_215",
+"cc_bar_complete_root_dir": "complete_root_cc_215",
 "correlations_to_analyse": [
     {
       "OS": "BplusBminus.root",
