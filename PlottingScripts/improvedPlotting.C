@@ -9,11 +9,6 @@
 
 using json = nlohmann::json;
 
-// To be taken from the configuration.json and send to main code
-struct CONFIGS {
-    std::vector<std::string> vTUNES;
-};
-
 // Define a structure to hold OS and SS correlation file names
 struct TriggerAssociateOSandSS {
     std::string OS;
@@ -33,15 +28,36 @@ void normalise(TH1D* hist, TH1D* trig, Double_t xmin, Double_t xmax) {
 	hist->Scale(1./integral);
 }
 
-void readConfig() {
+// To be taken from the configuration.json and send to main code
+// output from readConfig()
+struct CONFIGS {
+    // General
+    std::string base_dir;
+
+    // MONASH, JUNCTIONS, else...
+    std::vector<std::string> vTUNES;
+
+    // Which complete_root production? (beauty and charm)
+    std::string bbBarDir;
+    std::string ccBarDir;
+
+    // (BplusBminus.root,BplusBplus.root), ...
+    std::vector<TriggerAssociateOSandSS> vBeautyTriggerAssociateOSandSS;
+    std::vector<TriggerAssociateOSandSS> vCharmTriggerAssociateOSandSS;
+
+    // (hDPhiLL, hTrPtL), ...
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames;
+};
+
+CONFIGS readConfig() {
 
     std::cout << "Reading configuration.json" << std::endl;
+    std::cout << std::endl;
 
     // Open the JSON configuration file
     std::ifstream configFile("configuration.json");
     if (!configFile.is_open()) {
         std::cerr << "Error opening configuration file." << std::endl;
-        return;
     }
 
     // Parse the JSON file
@@ -72,8 +88,6 @@ void readConfig() {
         path_to_complete_root_dir = base_dir + "/" + TUNE + "/" + ccBarDir;
         std::cout << "Full path charm " << TUNE << ": " << path_to_complete_root_dir << std::endl;
     }
-    std::cout << std::endl;
-    std::cout << "OKAY (or not)" << std::endl;
     std::cout << std::endl;
 
     // Which correlations need to be analysed?
@@ -113,9 +127,25 @@ void readConfig() {
     }
     std::cout << std::endl;
 
+    std::cout << "OKAY (or not)" << std::endl;
+    std::cout << std::endl;
+
+    // TODO: give short summary of settings given and what the output yield vector will look like
+
+    CONFIGS configs_from_json;
+    configs_from_json.base_dir = base_dir;
+    configs_from_json.vTUNES = vTUNES;
+    configs_from_json.bbBarDir = bbBarDir;
+    configs_from_json.ccBarDir = ccBarDir;
+    configs_from_json.vBeautyTriggerAssociateOSandSS = vBeautyTriggerAssociateOSandSS;
+    configs_from_json.vCharmTriggerAssociateOSandSS = vCharmTriggerAssociateOSandSS;
+    configs_from_json.vHistogramAndTriggerPtHistogramNames = vHistogramAndTriggerPtHistogramNames;
+
+    return configs_from_json;
+
 } // readConfig()
 
 int improvedPlotting() {
-    readConfig();
+    CONFIGS configs_from_json = readConfig();
     return 0;
 }
