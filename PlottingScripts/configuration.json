@@ -6,7 +6,7 @@
 ],
 "bb_bar_complete_root_dir": "complete_root_bb_215",
 "cc_bar_complete_root_dir": "complete_root_cc_215",
-"correlations_to_analyse": [
+"beauty_correlations_to_analyse": [
     {
       "OS": "BplusBminus.root",
       "SS": "BplusBplus.root"
@@ -14,6 +14,30 @@
     {
       "OS": "BplusBzerobar.root",
       "SS": "BplusBzero.root"
+    }
+  ],
+  "charm_correlations_to_analyse": [
+    {
+      "OS": "DplusDminus.root",
+      "SS": "DplusDplus.root"
+    },
+    {
+      "OS": "DplusDzerobar.root",
+      "SS": "DplusDzero.root"
+    }
+  ],
+"histograms_to_analyse": [
+    {
+      "hDPhi": "hDPhiLL",
+      "hTrPt": "hTrPtL"
+    },
+    {
+      "hDPhi": "hDPhiII",
+      "hTrPt": "hTrPtI"
+    },
+    {
+      "hDPhi": "hDPhiHH",
+      "hTrPt": "hTrPtH"
     }
   ]
 }
