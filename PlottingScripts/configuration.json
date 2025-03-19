@@ -1,0 +1,13 @@
+{
+"path_to_bb_bar_complete_root_dir": "/Users/pv280546/Documents/GitHub/MasterThesisNikhef/RootFiles/complete_root_bb_215",
+"correlations_to_analyse": [
+    {
+      "OS": "BplusBminus.root",
+      "SS": "BplusBplus.root"
+    },
+    {
+      "OS": "BplusBzerobar.root",
+      "SS": "BplusBzero.root"
+    }
+  ]
+}
