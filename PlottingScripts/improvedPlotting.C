@@ -23,14 +23,6 @@ struct HistogramAndTriggerPtHistogramNames {
     std::string hTrPt;
 };
 
-void normalise(TH1D* hist, TH1D* trig, Double_t xmin, Double_t xmax) {
-	Int_t bin_start = trig->FindBin(xmin);
-	Int_t bin_finish = trig->FindBin(xmax);
-	Double_t integral = trig->Integral(bin_start, bin_finish);
-	std::cout << "function integral = " << integral << std::endl;
-	hist->Scale(1./integral);
-}
-
 // To be taken from the configuration.json and send to main code
 // output from readConfig()
 struct CONFIGS {
@@ -155,15 +147,37 @@ CONFIGS readConfig() {
 } // readConfig()
 
 
+// Simple function to calculate the yield given by two normalised OS and SS histograms
+// Their angular spectra are subtracted (OS - SS) to reduce background
+// and the full spectrum is integrated, though there is a posiblity to chose the integration range
+// (if desired)
+Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hTrPtSS) {
+
+    // Normalise by number of triggers
+	hDPhiOS->Scale(1/hTrPtOS->Integral());
+	hDPhiSS->Scale(1/hTrPtSS->Integral());
+    std::cout << "hDPhiOS->Integral() = " << hDPhiOS->Integral() << std::endl;
+    std::cout << "hTrPtOS->Integral() = " << hTrPtOS->Integral() << std::endl;
+
+    TH1D *hCorr = (TH1D*)hDPhiOS->Clone();
+    hCorr->Add(hDPhiSS, -1.);
+    std::cout << "hCorr->Integral() = " << hCorr->Integral() << std::endl;
+
+    return hCorr->Integral();
+} // calculateOneYield()
+
+
 // Yields are calculated by looping over TUNES (e.g. MONASH),
 // then ASSOCIATES (e.g. B-)
 // and then DEPENDENCIES (e.g. DPhiLL)
 // Function needs to be called for the FLAVOUR seperately (e.g. Beauty)
 // The output is a 3D vector with the structure
 // v[TUNE][ASSOCIATE][DEPENDENCY]
-void calculateYields(CONFIGS configs_from_json, const char* FLAVOUR) {
+void calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
 
     std::cout << "*** Calculating yields for " << FLAVOUR << " ***" << std::endl;
+
+    std::vector<std::vector<std::vector<Double_t>>> vYields;
 
     // Retrieve settings from configuration.json
     std::string base_dir = configs_from_json.base_dir;
@@ -205,9 +219,14 @@ void calculateYields(CONFIGS configs_from_json, const char* FLAVOUR) {
 	            if (strcmp((fileNamesOSandSS.trigger).c_str(), 
                            (fileNamesOSandSS.associateSS).c_str()) == 0) { 
                     hDPhiSS->Scale(0.5); } // Prevent double-counting
-	
-	            hDPhiOS->Scale(1/hTrPtOS->Integral());
-	            hDPhiSS->Scale(1/hTrPtSS->Integral());
+
+                // Calculate yield value and assign to appropriate place in vector
+                Double_t yield = calculateOneYield(hDPhiOS, hTrPtOS, hDPhiSS, hTrPtSS);
+                if (i >= vYields.size()) { vYields.resize(i + 1); }
+                if (j >= vYields[i].size()) { vYields[i].resize(j + 1); }
+                if (k >= vYields[i][j].size()) { vYields[i][j].resize(k + 1); }
+                vYields[i][j][k] = yield; 
+                std::cout << "vYields[" << i << "][" << j << "][" << k << "] = " << vYields[i][j][k] << std::endl;
 
                 std::cout << std::endl;
             } // Loop over DEPENDENCIES
@@ -225,8 +244,8 @@ void calculateYields(CONFIGS configs_from_json, const char* FLAVOUR) {
 int improvedPlotting() {
 
     CONFIGS configs_from_json = readConfig();
-    calculateYields(configs_from_json, "BEAUTY");
-    calculateYields(configs_from_json, "CHARM");
+    calculateYieldsVector(configs_from_json, "BEAUTY");
+    calculateYieldsVector(configs_from_json, "CHARM");
 
     return 0;
 }
