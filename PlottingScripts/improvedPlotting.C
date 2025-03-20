@@ -7,6 +7,7 @@
 #include "TFile.h"
 #include "TH1D.h"
 #include "TCanvas.h"
+#include "TString.h"
 
 using json = nlohmann::json;
 
@@ -188,6 +189,7 @@ Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hT
 // Function needs to be called for the FLAVOUR seperately (e.g. Beauty)
 // The output is a 3D vector with the structure
 // v[TUNE][ASSOCIATE][DEPENDENCY]
+// TODO: change the .size() to variables nTUNES, etc. Like in the plotting function below
 std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
 
     std::cout << "*** Calculating yields for " << FLAVOUR << " ***" << std::endl;
@@ -281,13 +283,14 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
     if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
     std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
 
+    Int_t nTUNES = vTUNES.size();
+    Int_t nAssociates = vTriggerAssociateOSandSS.size();
+    Int_t nDependencies = vHistogramAndTriggerPtHistogramNames.size();
 
     // Values will be drawn from a 2D vector of TH1D with number of ASSOCIATES bins
     // This way the TUNE and DEPENDENCY can be looped over, while the data points will be the ASSOCIATES
-    std::vector<std::vector<TH1D*>> histograms2D;
-    Int_t nAssociates = vTriggerAssociateOSandSS.size();
+    std::vector<std::vector<TH1D*>> vHists2D;
     std::cout << "number of associates: " << nAssociates << std::endl;
-    histograms2D.resize(nAssociates);
 
     // Define a template for this plot to set titles, stats, etc.
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), "hYieldsTemplate", nAssociates, 0, nAssociates);
@@ -298,7 +301,7 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
 
 
     // Loop over TUNES
-    for (Int_t i=0; i<vTUNES.size(); i++) {
+    for (Int_t i=0; i<nTUNES; i++) {
 
 
         std::string TUNE = vTUNES[i];
@@ -310,23 +313,34 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
         for (Int_t j=0; j<nAssociates; j++) {
 
 
+            // TODO: fix this bug with associateName and formatting....
             TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
-            std::cout << "starting loop over associate: " << fileNamesOSandSS.associateOS << std::endl;
+            std::string associateName = fileNamesOSandSS.associateOS;
+            std::cout << "starting loop over associate: " << associateName << std::endl;
             std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
 
             if (i==0) { // only set the template histogram once
-
+                // Define associate label names for yield plots
+                hYieldsTemplate->GetXaxis()->SetBinLabel(1+j, associateName.c_str());
             }
 
 
             std::cout << std::endl;
 
             // Loop over DEPENDENCIES
-            for (Int_t k=0; k<vHistogramAndTriggerPtHistogramNames.size(); k++) {
+            for (Int_t k=0; k<nDependencies; k++) {
 
 
                 HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
                 std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+
+                if (i >= vYields.size()) { vYields.resize(i + 1); }
+                if (k >= vYields[i].size()) { vYields[i].resize(k + 1); }
+                vHists2D[i][k]->SetBinContent(1+j, vYields[i][j][k]);
+                cYields->cd();
+                vHists2D[i][k]->Draw("hist");
+
+
                 std::cout << std::endl;
 
 
@@ -339,11 +353,9 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
     } // Loop over TUNES
 
 
-
-    // Define associate label names for yield plots
-    // hYieldsTemplate->GetXaxis()->SetBinLabel(1+i/Nhist, histEntry.AssociateNameOS);
-
     return;
+
+
 } // drawBalancingPlots()
 
 
