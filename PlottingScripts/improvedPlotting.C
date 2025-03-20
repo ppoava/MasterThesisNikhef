@@ -289,7 +289,7 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
 
     // Values will be drawn from a 2D vector of TH1D with number of ASSOCIATES bins
     // This way the TUNE and DEPENDENCY can be looped over, while the data points will be the ASSOCIATES
-    std::vector<std::vector<TH1D*>> vHists2D;
+    TH1D *vHists[nTUNES][nDependencies];
     std::cout << "number of associates: " << nAssociates << std::endl;
 
     // Define a template for this plot to set titles, stats, etc.
@@ -297,7 +297,7 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
 
     TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), 800, 600);
     cYields->cd();
-    hYieldsTemplate->Draw("hist");
+    hYieldsTemplate->Draw("PE");
 
 
     // Loop over TUNES
@@ -334,12 +334,11 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
                 HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
                 std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
-                if (i >= vYields.size()) { vYields.resize(i + 1); }
-                if (k >= vYields[i].size()) { vYields[i].resize(k + 1); }
-                vHists2D[i][k]->SetBinContent(1+j, vYields[i][j][k]);
+                vHists[i][k] = new TH1D(Form("hYields_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYields_%s_%i_%i_%i", FLAVOUR, i, j, k), nAssociates, 0, nAssociates);
+                vHists[i][k]->SetBinContent(1+j, vYields[i][j][k]);
+                vHists[i][k]->SetBinError(1+j, 1e-10); // necessary for drawing
                 cYields->cd();
-                vHists2D[i][k]->Draw("hist");
-
+                vHists[i][k]->Draw("same PE");
 
                 std::cout << std::endl;
 
