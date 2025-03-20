@@ -267,6 +267,86 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
 } // calculateYieldsVector()
 
 
+void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vector<std::vector<std::vector<Double_t>>> vYields) {
+
+
+    std::cout << "*** Drawing balancing plots for " << FLAVOUR << " ***" << std::endl;
+
+
+    // Retrieve settings from configuration.json
+    std::string base_dir = configs_from_json.base_dir;
+    std::vector<std::string> vTUNES = configs_from_json.vTUNES;
+    std::vector<TriggerAssociateOSandSS> vTriggerAssociateOSandSS;
+    if (strcmp(FLAVOUR, "BEAUTY") == 0) { vTriggerAssociateOSandSS = configs_from_json.vBeautyTriggerAssociateOSandSS; }
+    if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
+
+
+    // Values will be drawn from a 2D vector of TH1D with number of ASSOCIATES bins
+    // This way the TUNE and DEPENDENCY can be looped over, while the data points will be the ASSOCIATES
+    std::vector<std::vector<TH1D*>> histograms2D;
+    Int_t nAssociates = vTriggerAssociateOSandSS.size();
+    std::cout << "number of associates: " << nAssociates << std::endl;
+    histograms2D.resize(nAssociates);
+
+    // Define a template for this plot to set titles, stats, etc.
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), "hYieldsTemplate", nAssociates, 0, nAssociates);
+
+    TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), 800, 600);
+    cYields->cd();
+    hYieldsTemplate->Draw("hist");
+
+
+    // Loop over TUNES
+    for (Int_t i=0; i<vTUNES.size(); i++) {
+
+
+        std::string TUNE = vTUNES[i];
+        std::cout << "starting loop over " << TUNE << std::endl;
+        std::cout << std::endl;
+
+
+        // Loop over ASSOCIATES
+        for (Int_t j=0; j<nAssociates; j++) {
+
+
+            TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
+            std::cout << "starting loop over associate: " << fileNamesOSandSS.associateOS << std::endl;
+            std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+
+            if (i==0) { // only set the template histogram once
+
+            }
+
+
+            std::cout << std::endl;
+
+            // Loop over DEPENDENCIES
+            for (Int_t k=0; k<vHistogramAndTriggerPtHistogramNames.size(); k++) {
+
+
+                HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
+                std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+                std::cout << std::endl;
+
+
+            } // Loop over DEPENDENCIES
+
+
+        } // Loop over ASSOCIATES
+
+
+    } // Loop over TUNES
+
+
+
+    // Define associate label names for yield plots
+    // hYieldsTemplate->GetXaxis()->SetBinLabel(1+i/Nhist, histEntry.AssociateNameOS);
+
+    return;
+} // drawBalancingPlots()
+
+
 int improvedPlotting() {
 
     // Read configurations defined by user in configuration.json
@@ -275,11 +355,11 @@ int improvedPlotting() {
     // Calculate the 3D yield vector
     std::vector<std::vector<std::vector<Double_t>>> vYieldsBeauty;
     std::vector<std::vector<std::vector<Double_t>>> vYieldsCharm;
-    vYieldsBeauty = calculateYieldsVector(configs_from_json, "BEAUTY");
-    vYieldsCharm =  calculateYieldsVector(configs_from_json, "CHARM");
+    vYieldsBeauty = calculateYieldsVector(configs_from_json,"BEAUTY");
+    vYieldsCharm =  calculateYieldsVector(configs_from_json,"CHARM");
 
     // Draw the balancing plots using the 3D yield vector
-
+    drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
 
     return 0;
 }
