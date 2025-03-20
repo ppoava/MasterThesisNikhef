@@ -5,7 +5,8 @@
 
 // Include ROOT headers
 #include "TFile.h"
-#include "TH1F.h"
+#include "TH1D.h"
+#include "TCanvas.h"
 
 using json = nlohmann::json;
 
@@ -151,17 +152,31 @@ CONFIGS readConfig() {
 // Their angular spectra are subtracted (OS - SS) to reduce background
 // and the full spectrum is integrated, though there is a posiblity to chose the integration range
 // (if desired)
-Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hTrPtSS) {
+Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hTrPtSS, const char* FLAVOUR, Int_t i, Int_t j, Int_t k) {
 
     // Normalise by number of triggers
 	hDPhiOS->Scale(1/hTrPtOS->Integral());
 	hDPhiSS->Scale(1/hTrPtSS->Integral());
-    std::cout << "hDPhiOS->Integral() = " << hDPhiOS->Integral() << std::endl;
-    std::cout << "hTrPtOS->Integral() = " << hTrPtOS->Integral() << std::endl;
+    // std::cout << "hDPhiOS->Integral() = " << hDPhiOS->Integral() << std::endl;
+    // std::cout << "hTrPtOS->Integral() = " << hTrPtOS->Integral() << std::endl;
 
     TH1D *hCorr = (TH1D*)hDPhiOS->Clone();
     hCorr->Add(hDPhiSS, -1.);
-    std::cout << "hCorr->Integral() = " << hCorr->Integral() << std::endl;
+    // std::cout << "hCorr->Integral() = " << hCorr->Integral() << std::endl;
+
+    // TODO: add option in configuration.json to show angular correlation spectra
+    // User can define OS, SS, for which associate, which dependency, whatever...
+    /*
+    TCanvas *chDPhiOS = new TCanvas(Form("chDPhiOS_%s_%i%i%i",FLAVOUR,i,j,k),Form("chDPhiOS_%s_%i%i%i",FLAVOUR,i,j,k),600,800);
+    chDPhiOS->cd();
+    hDPhiOS->Draw("hist");
+    TCanvas *chDPhiSS = new TCanvas(Form("chDPhiSS_%s_%i%i%i",FLAVOUR,i,j,k),Form("chDPhiSS_%s_%i%i%i",FLAVOUR_i,j,k),600,800);
+    chDPhiSS->cd();
+    hDPhiSS->Draw("hist");
+    TCanvas *cCorr = new TCanvas(Form("cCorr_%s_%i%i%i",FLAVOUR,i,j,k),Form("cCorr_%s_%i%i%i",FLAVOUR,i,j,k),600,800);
+    cCorr->cd();
+    hCorr->Draw("hist");
+    */
 
     return hCorr->Integral();
 } // calculateOneYield()
@@ -173,7 +188,7 @@ Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hT
 // Function needs to be called for the FLAVOUR seperately (e.g. Beauty)
 // The output is a 3D vector with the structure
 // v[TUNE][ASSOCIATE][DEPENDENCY]
-void calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
+std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
 
     std::cout << "*** Calculating yields for " << FLAVOUR << " ***" << std::endl;
 
@@ -201,7 +216,7 @@ void calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
             TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
             std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
 
-            TFile *OStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.SS).c_str());
+            TFile *OStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.OS).c_str());
             TFile *SStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.SS).c_str());
 
             std::cout << std::endl;
@@ -221,7 +236,7 @@ void calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
                     hDPhiSS->Scale(0.5); } // Prevent double-counting
 
                 // Calculate yield value and assign to appropriate place in vector
-                Double_t yield = calculateOneYield(hDPhiOS, hTrPtOS, hDPhiSS, hTrPtSS);
+                Double_t yield = calculateOneYield(hDPhiOS, hTrPtOS, hDPhiSS, hTrPtSS, FLAVOUR, i, j, k);
                 if (i >= vYields.size()) { vYields.resize(i + 1); }
                 if (j >= vYields[i].size()) { vYields[i].resize(j + 1); }
                 if (k >= vYields[i][j].size()) { vYields[i][j].resize(k + 1); }
@@ -237,15 +252,18 @@ void calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
 
     std::cout << std::endl;
 
-    return;
+    return vYields;
 }
 
 
 int improvedPlotting() {
 
     CONFIGS configs_from_json = readConfig();
-    calculateYieldsVector(configs_from_json, "BEAUTY");
-    calculateYieldsVector(configs_from_json, "CHARM");
+
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsBeauty;
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsCharm;
+    vYieldsBeauty = calculateYieldsVector(configs_from_json, "BEAUTY");
+    vYieldsCharm =  calculateYieldsVector(configs_from_json, "CHARM");
 
     return 0;
 }
