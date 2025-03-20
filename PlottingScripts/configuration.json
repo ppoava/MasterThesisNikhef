@@ -9,17 +9,31 @@
 "beauty_correlations_to_analyse": [
     {
       "trigger": "Bˆ{+}",
-      "associateOS": "Bˆ{-}",
+      "associateOS": "B-",
       "associateSS": "Bˆ{+}",
       "OS": "BplusBminus.root",
       "SS": "BplusBplus.root"
     },
     {
       "trigger": "Bˆ{+}",
-      "associateOS": "#barBˆ{0}",
+      "associateOS": "B0-bar",
       "associateSS": "Bˆ{0}",
       "OS": "BplusBzerobar.root",
       "SS": "BplusBzero.root"
+    },
+    {
+        "trigger": "Bˆ{+}",
+        "associateOS": "Bs0-bar",
+        "associateSS": "B_{s}ˆ{0}",
+        "OS": "BplusBszerobar.root",
+        "SS": "BplusBszero.root"
+    },
+    {
+        "trigger": "Bˆ{+}",
+        "associateOS": "Bc-",
+        "associateSS": "B_{c}ˆ{+}",
+        "OS": "BplusBcminus.root",
+        "SS": "BplusBcplus.root"
     }
   ],
   "charm_correlations_to_analyse": [
