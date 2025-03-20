@@ -205,24 +205,31 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
     if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
     std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
 
+
     // Loop over TUNES
     for (Int_t i=0; i<vTUNES.size(); i++) {
+
+
         std::string TUNE = vTUNES[i];
         std::cout << "starting loop over " << TUNE << std::endl;
         std::cout << std::endl;
 
+
         // Loop over ASSOCIATES
         for (Int_t j=0; j<vTriggerAssociateOSandSS.size(); j++) {
+
+
             TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
             std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
-
             TFile *OStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.OS).c_str());
             TFile *SStree = new TFile((base_dir + "/" + TUNE + "/" + complete_root_dir + "_" + TUNE + "/" + fileNamesOSandSS.SS).c_str());
-
             std::cout << std::endl;
+
 
             // Loop over DEPENDENCIES
             for (Int_t k=0; k<vHistogramAndTriggerPtHistogramNames.size(); k++) {
+
+
                 HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
                 std::cout << "analysing histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
@@ -242,28 +249,37 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
                 if (k >= vYields[i][j].size()) { vYields[i][j].resize(k + 1); }
                 vYields[i][j][k] = yield; 
                 std::cout << "vYields[" << i << "][" << j << "][" << k << "] = " << vYields[i][j][k] << std::endl;
-
                 std::cout << std::endl;
+
+
             } // Loop over DEPENDENCIES
+
 
         } // Loop over ASSOCIATES
 
+
     } // Loop over TUNES
 
-    std::cout << std::endl;
 
     return vYields;
-}
+
+
+} // calculateYieldsVector()
 
 
 int improvedPlotting() {
 
+    // Read configurations defined by user in configuration.json
     CONFIGS configs_from_json = readConfig();
 
+    // Calculate the 3D yield vector
     std::vector<std::vector<std::vector<Double_t>>> vYieldsBeauty;
     std::vector<std::vector<std::vector<Double_t>>> vYieldsCharm;
     vYieldsBeauty = calculateYieldsVector(configs_from_json, "BEAUTY");
     vYieldsCharm =  calculateYieldsVector(configs_from_json, "CHARM");
+
+    // Draw the balancing plots using the 3D yield vector
+
 
     return 0;
 }
