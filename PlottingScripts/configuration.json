@@ -1,4 +1,6 @@
 {
+"calculate_errors": true,
+"nSubSamples": 20,
 "base_dir": "/Users/pv280546/Documents/GitHub/MasterThesisNikhef/RootFiles",
 "PYTHIA_TUNES": [
     "MONASH",
@@ -39,14 +41,14 @@
   "charm_correlations_to_analyse": [
     {
       "trigger": "Dˆ{+}",
-      "associateOS": "Dˆ{-}",
+      "associateOS": "D-",
       "associateSS": "Dˆ{+}",
       "OS": "DplusDminus.root",
       "SS": "DplusDplus.root"
     },
     {
       "trigger": "Dˆ{+}",
-      "associateOS": "#barDˆ{0}",
+      "associateOS": "#D0-bar",
       "associateSS": "Dˆ{0}",
       "OS": "DplusDzerobar.root",
       "SS": "DplusDzero.root"
