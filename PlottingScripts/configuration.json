@@ -1,6 +1,7 @@
 {
-"calculate_errors": true,
-"nSubSamples": 20,
+"calculate_errors": false,
+"nSubSamples": 40,
+
 "base_dir": "/Users/pv280546/Documents/GitHub/MasterThesisNikhef/RootFiles",
 "PYTHIA_TUNES": [
     "MONASH",
