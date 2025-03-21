@@ -29,6 +29,11 @@ struct HistogramAndTriggerPtHistogramNames {
     std::string hTrPt;
 };
 
+struct YieldsAndErrors {
+    std::vector<std::vector<std::vector<Double_t>>> vYields;
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsErrors;
+};
+
 // To be taken from the configuration.json and send to main code
 // output from readConfig()
 struct CONFIGS {
@@ -170,10 +175,12 @@ Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hT
                            Int_t i, Int_t j, Int_t k, Int_t l) {
 
     // Normalise by number of triggers
+    std::cout << "hDPhiOS Integral: " << hDPhiOS->Integral() 
+          << ", hDPhiSS Integral: " << hDPhiSS->Integral() << std::endl;
 	hDPhiOS->Scale(1/hTrPtOS->Integral());
 	hDPhiSS->Scale(1/hTrPtSS->Integral());
-    // std::cout << "hDPhiOS->Integral() = " << hDPhiOS->Integral() << std::endl;
-    // std::cout << "hTrPtOS->Integral() = " << hTrPtOS->Integral() << std::endl;
+    std::cout << "hDPhiOS Integral: " << hDPhiOS->Integral() 
+          << ", hDPhiSS Integral: " << hDPhiSS->Integral() << std::endl;
 
     TH1D *hCorr = (TH1D*)hDPhiOS->Clone();
     hCorr->Add(hDPhiSS, -1.);
@@ -198,6 +205,7 @@ Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hT
 
 
 // Function to create a subsample histogram with the same binning as the original
+/*
 TH1D* createSubSampleHistogram(TH1D *originalHist, Int_t subSampleIndex, Int_t nSubSamples,
                                std::string FLAVOUR, std::string TYPE, Int_t i, Int_t j, Int_t k) {
                                 
@@ -215,19 +223,31 @@ TH1D* createSubSampleHistogram(TH1D *originalHist, Int_t subSampleIndex, Int_t n
     // Randomly select entries for the subsample
     std::random_device rd;
     std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> binDis(1, originalHist->GetNbinsX());  // Distribute over bins
 
+    // Fill the subsample histogram with random entries
     for (Int_t sample = 0; sample < subSampleSize; ++sample) {
-        Double_t value = originalHist->GetRandom();
-        subHist->Fill(value);
-        // std::cout << "value = " << value << std::endl;
+        int randomBin = binDis(gen);  // Select a random bin
+        Double_t binContent = originalHist->GetBinContent(randomBin);  // Get bin content
+        
+        // Fill the subsample with random values within that bin
+        if (binContent > 0) {
+            std::uniform_real_distribution<> valueDis(originalHist->GetBinLowEdge(randomBin),
+                                                      originalHist->GetBinLowEdge(randomBin + 1));
+            Double_t value = valueDis(gen);
+            subHist->Fill(value);  // Add the value to the subsample histogram
+        }
     }
+
+    std::cout << "Subsample " << subSampleIndex << " Mean: " << subHist->GetMean() 
+              << ", Variance: " << subHist->GetStdDev() << std::endl;
     
 
-    std::cout << "Mean: " << subHist->GetMean() << ", Variance: " << subHist->GetStdDev() << std::endl;
+    // std::cout << "Mean: " << subHist->GetMean() << ", Variance: " << subHist->GetStdDev() << std::endl;
     
     return subHist;
 } // createSubSampleHistogram()
-
+*/
 
 // Yields are calculated by looping over TUNES (e.g. MONASH),
 // then ASSOCIATES (e.g. B-)
@@ -236,11 +256,12 @@ TH1D* createSubSampleHistogram(TH1D *originalHist, Int_t subSampleIndex, Int_t n
 // The output is a 3D vector with the structure
 // v[TUNE][ASSOCIATE][DEPENDENCY]
 // TODO: change the .size() to variables nTUNES, etc. Like in the plotting function below
-std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
+YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLAVOUR) {
 
     std::cout << "*** Calculating yields for " << FLAVOUR << " ***" << std::endl;
 
     std::vector<std::vector<std::vector<Double_t>>> vYields;
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsErrors;
 
     // Retrieve settings from configuration.json
     bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
@@ -296,7 +317,9 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
                 // Calculate the error on the yield by subsampling with N samples
                 // Not the most efficient way, but it is straightforward and clear
                 // and anyways the files are quite small so it doesn't take too long
-                if (CALCULATE_ERRORS && i==0 && j==0 && k==0) { // add this to configuration.json
+                if (CALCULATE_ERRORS) {
+                    /*
+                    TH1D *hSubYields = new TH1D(Form("hSubYields_%i%i%i", i, j, k), Form("hSubYields_%i%i%i", i, j, k), 50, 3.32, 3.39);
                     for (Int_t l = 0; l < nSubSamples; l++) {
                         // Most of the indices are there to create unique histograms
                         // They don't actually provide interesting information besides debugging
@@ -308,23 +331,40 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
                         Double_t subYield = calculateOneYield(subHDPhiOS, subHTrPtOS, subHDPhiSS, subHTrPtSS, FLAVOUR, i, j, k, l);
                         std::cout << "vYields[" << i << "][" << j << "][" << k << "][" << l << "] = " << subYield << std::endl;
                         std::cout << std::endl;
-                        /*
+
                         delete subHDPhiOS;
                         delete subHTrPtOS;
                         delete subHDPhiSS;
                         delete subHTrPtSS;
-                        */
-                       TCanvas *cTestHDPhiOS;
-                       if (i==0 && j==0 && k==0 && l==0) {
-                        cTestHDPhiOS = new TCanvas("testHDPhiOS","testHDPhiOS",600,800);
-                        cTestHDPhiOS->cd();
-                        subHDPhiOS->Draw("hist");
+
+                        // Calculate standard deviation by assuming Gaussian
+                        hSubYields->Fill(subYield);
+
+                        TCanvas *cTestHDPhiOS;
+                        TCanvas *cTestSubYields;
+                        if (i==0 && j==0 && k==0 && l==0) {
+                            cTestHDPhiOS = new TCanvas("testHDPhiOS","testHDPhiOS",600,800);
+                            cTestHDPhiOS->cd();
+                            subHDPhiOS->Draw("hist");
                         }
                         if (i==0 && j==0 && k==0 && l==1) {
-                        cTestHDPhiOS->cd();
-                        subHDPhiOS->Draw("same hist");
+                            cTestHDPhiOS->cd();
+                            subHDPhiOS->Draw("same hist");
+                        }
+                        if (i==0 && j==0 && k==0 && l==0) {
+                            cTestSubYields = new TCanvas("testSubYields","testSubYields",600,800);
+                            cTestSubYields->cd();
+                            hSubYields->Draw("hist");
                         }
                     }
+                    Double_t yieldError = hSubYields->GetStdDev();
+                    if (i >= vYieldsErrors.size()) { vYieldsErrors.resize(i + 1); }
+                    if (j >= vYieldsErrors[i].size()) { vYieldsErrors[i].resize(j + 1); }
+                    if (k >= vYieldsErrors[i][j].size()) { vYieldsErrors[i][j].resize(k + 1); }
+                    vYieldsErrors[i][j][k] = yieldError; 
+                    std::cout << "vYieldsErrors[" << i << "][" << j << "][" << k << "] = " << vYieldsErrors[i][j][k] << std::endl;
+                    std::cout << std::endl;
+                */
                 }
 
                 // Calculate yield value and assign to appropriate place in vector
@@ -346,19 +386,23 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
     } // Loop over TUNES
 
 
-    return vYields;
+    YieldsAndErrors vYieldsAndErrors;
+    vYieldsAndErrors.vYields = vYields;
+    if (CALCULATE_ERRORS) { vYieldsAndErrors.vYieldsErrors = vYieldsErrors; }
+    return vYieldsAndErrors;
 
 
 } // calculateYieldsVector()
 
 
-void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vector<std::vector<std::vector<Double_t>>> vYields) {
+void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAndErrors vYields) {
 
 
     std::cout << "*** Drawing balancing plots for " << FLAVOUR << " ***" << std::endl;
 
 
     // Retrieve settings from configuration.json
+    bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
     std::string base_dir = configs_from_json.base_dir;
     std::vector<std::string> vTUNES = configs_from_json.vTUNES;
     std::vector<TriggerAssociateOSandSS> vTriggerAssociateOSandSS;
@@ -418,8 +462,13 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, std::vec
                 std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
                 vHists[i][k] = new TH1D(Form("hYields_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYields_%s_%i_%i_%i", FLAVOUR, i, j, k), nAssociates, 0, nAssociates);
-                vHists[i][k]->SetBinContent(1+j, vYields[i][j][k]);
-                vHists[i][k]->SetBinError(1+j, 1e-10); // necessary for drawing
+                vHists[i][k]->SetBinContent(1+j, vYields.vYields[i][j][k]);
+                if (CALCULATE_ERRORS) { 
+                    vHists[i][k]->SetBinError(1+j, vYields.vYieldsErrors[i][j][k]);
+                }
+                else {
+                    vHists[i][k]->SetBinError(1+j, 1e-10);
+                }
                 cYields->cd();
                 vHists[i][k]->Draw("same PE");
 
@@ -447,13 +496,13 @@ int improvedPlotting() {
     CONFIGS configs_from_json = readConfig();
 
     // Calculate the 3D yield vector
-    std::vector<std::vector<std::vector<Double_t>>> vYieldsBeauty;
-    std::vector<std::vector<std::vector<Double_t>>> vYieldsCharm;
+    YieldsAndErrors vYieldsBeauty;
+    YieldsAndErrors vYieldsCharm;
     vYieldsBeauty = calculateYieldsVector(configs_from_json,"BEAUTY");
     // vYieldsCharm =  calculateYieldsVector(configs_from_json,"CHARM");
 
     // Draw the balancing plots using the 3D yield vector
-    // drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
+    drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
     // drawBalancingPlots(configs_from_json,"CHARM", vYieldsCharm);
 
     return 0;
