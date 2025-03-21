@@ -2,7 +2,7 @@
 ** Heavy flavour azimuthal angular correlation studies in pp collisions with PYTHIA **
 **************************************************************************************
 
-Author: Paul Veen (pveen@nikhef.nl)
+Author: Paul Veen (paul.veen@cern.ch)
 
 This repository contains C++ scripts that are used to generate and study azimuthal angular
 correlations for charm and beauty hadrons in pp collisions with PYTHIA.
