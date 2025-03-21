@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <random>
 
 // Include ROOT headers
 #include "TFile.h"
@@ -10,6 +12,8 @@
 #include "TString.h"
 
 using json = nlohmann::json;
+
+// TODO: put structs in a header file
 
 // Define a structure to hold OS and SS correlation file names
 struct TriggerAssociateOSandSS {
@@ -29,6 +33,8 @@ struct HistogramAndTriggerPtHistogramNames {
 // output from readConfig()
 struct CONFIGS {
     // General
+    bool CALCULATE_ERRORS;
+    int nSubSamples;
     std::string base_dir;
 
     // MONASH, JUNCTIONS, else...
@@ -62,6 +68,11 @@ CONFIGS readConfig() {
     configFile >> config;
 
     // Extract values from the JSON
+
+    // Generic options
+    bool CALCULATE_ERRORS = config["calculate_errors"].get<bool>();
+    int nSubSamples = config["nSubSamples"].get<int>();
+
     // RootFiles path ("base directory")
     std::string base_dir = config["base_dir"];
 
@@ -136,6 +147,8 @@ CONFIGS readConfig() {
     // TODO: give short summary of settings given and what the output yield vector will look like
 
     CONFIGS configs_from_json;
+    configs_from_json.CALCULATE_ERRORS = CALCULATE_ERRORS;
+    configs_from_json.nSubSamples = nSubSamples;
     configs_from_json.base_dir = base_dir;
     configs_from_json.vTUNES = vTUNES;
     configs_from_json.bbBarDir = bbBarDir;
@@ -153,7 +166,8 @@ CONFIGS readConfig() {
 // Their angular spectra are subtracted (OS - SS) to reduce background
 // and the full spectrum is integrated, though there is a posiblity to chose the integration range
 // (if desired)
-Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hTrPtSS, const char* FLAVOUR, Int_t i, Int_t j, Int_t k) {
+Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hTrPtSS, const char* FLAVOUR, 
+                           Int_t i, Int_t j, Int_t k, Int_t l) {
 
     // Normalise by number of triggers
 	hDPhiOS->Scale(1/hTrPtOS->Integral());
@@ -168,19 +182,51 @@ Double_t calculateOneYield(TH1D *hDPhiOS, TH1D *hTrPtOS, TH1D *hDPhiSS, TH1D *hT
     // TODO: add option in configuration.json to show angular correlation spectra
     // User can define OS, SS, for which associate, which dependency, whatever...
     /*
-    TCanvas *chDPhiOS = new TCanvas(Form("chDPhiOS_%s_%i%i%i",FLAVOUR,i,j,k),Form("chDPhiOS_%s_%i%i%i",FLAVOUR,i,j,k),600,800);
+    TCanvas *chDPhiOS = new TCanvas(Form("chDPhiOS_%s_%i%i%i_%i",FLAVOUR,i,j,k,l),Form("chDPhiOS_%s_%i%i%i_%i",FLAVOUR,i,j,k,l),600,800);
     chDPhiOS->cd();
     hDPhiOS->Draw("hist");
-    TCanvas *chDPhiSS = new TCanvas(Form("chDPhiSS_%s_%i%i%i",FLAVOUR,i,j,k),Form("chDPhiSS_%s_%i%i%i",FLAVOUR_i,j,k),600,800);
+    TCanvas *chDPhiSS = new TCanvas(Form("chDPhiSS_%s_%i%i%i_%i",FLAVOUR,i,j,k,l),Form("chDPhiSS_%s_%i%i%i_%i",FLAVOUR_i,j,k,l),600,800);
     chDPhiSS->cd();
     hDPhiSS->Draw("hist");
-    TCanvas *cCorr = new TCanvas(Form("cCorr_%s_%i%i%i",FLAVOUR,i,j,k),Form("cCorr_%s_%i%i%i",FLAVOUR,i,j,k),600,800);
+    TCanvas *cCorr = new TCanvas(Form("cCorr_%s_%i%i%i_%i",FLAVOUR,i,j,k,l),Form("cCorr_%s_%i%i%i_%i",FLAVOUR,i,j,k,l),600,800);
     cCorr->cd();
     hCorr->Draw("hist");
     */
 
     return hCorr->Integral();
 } // calculateOneYield()
+
+
+// Function to create a subsample histogram with the same binning as the original
+TH1D* createSubSampleHistogram(TH1D *originalHist, Int_t subSampleIndex, Int_t nSubSamples,
+                               std::string FLAVOUR, std::string TYPE, Int_t i, Int_t j, Int_t k) {
+                                
+    // Create a new histogram for the subsample with the same binning
+    TH1D *subHist = new TH1D(
+        Form("subHist_%s_%s_%s_%i%i%i_%i", FLAVOUR.c_str(), originalHist->GetName(), TYPE.c_str(), i, j, k, subSampleIndex),
+        Form("SubSample %i of %s", subSampleIndex, originalHist->GetTitle()),
+        originalHist->GetNbinsX(), originalHist->GetXaxis()->GetXmin(), originalHist->GetXaxis()->GetXmax()
+    );
+
+    // Get the total number of entries in the original histogram
+    int totalEntries = originalHist->GetEntries();
+    int subSampleSize = totalEntries / nSubSamples;
+
+    // Randomly select entries for the subsample
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    for (Int_t sample = 0; sample < subSampleSize; ++sample) {
+        Double_t value = originalHist->GetRandom();
+        subHist->Fill(value);
+        // std::cout << "value = " << value << std::endl;
+    }
+    
+
+    std::cout << "Mean: " << subHist->GetMean() << ", Variance: " << subHist->GetStdDev() << std::endl;
+    
+    return subHist;
+} // createSubSampleHistogram()
 
 
 // Yields are calculated by looping over TUNES (e.g. MONASH),
@@ -197,6 +243,8 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
     std::vector<std::vector<std::vector<Double_t>>> vYields;
 
     // Retrieve settings from configuration.json
+    bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
+    int nSubSamples = configs_from_json.nSubSamples;
     std::string base_dir = configs_from_json.base_dir;
     std::vector<std::string> vTUNES = configs_from_json.vTUNES;
     std::string complete_root_dir;
@@ -235,17 +283,52 @@ std::vector<std::vector<std::vector<Double_t>>> calculateYieldsVector(CONFIGS co
                 HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
                 std::cout << "analysing histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
-                TH1D* hDPhiOS = (TH1D*)OStree->Get((hDPhiAndhTrPtNames.hDPhi).c_str());
-	            TH1D* hDPhiSS = (TH1D*)SStree->Get((hDPhiAndhTrPtNames.hDPhi).c_str());
-	            TH1D* hTrPtOS = (TH1D*)OStree->Get((hDPhiAndhTrPtNames.hTrPt).c_str());
-	            TH1D* hTrPtSS = (TH1D*)SStree->Get((hDPhiAndhTrPtNames.hTrPt).c_str());
+                TH1D *hDPhiOS = (TH1D*)OStree->Get((hDPhiAndhTrPtNames.hDPhi).c_str());
+	            TH1D *hDPhiSS = (TH1D*)SStree->Get((hDPhiAndhTrPtNames.hDPhi).c_str());
+	            TH1D *hTrPtOS = (TH1D*)OStree->Get((hDPhiAndhTrPtNames.hTrPt).c_str());
+	            TH1D *hTrPtSS = (TH1D*)SStree->Get((hDPhiAndhTrPtNames.hTrPt).c_str());
 
+                // Prevent double-counting
 	            if (strcmp((fileNamesOSandSS.trigger).c_str(), 
                            (fileNamesOSandSS.associateSS).c_str()) == 0) { 
-                    hDPhiSS->Scale(0.5); } // Prevent double-counting
+                    hDPhiSS->Scale(0.5); } 
+
+                // Calculate the error on the yield by subsampling with N samples
+                // Not the most efficient way, but it is straightforward and clear
+                // and anyways the files are quite small so it doesn't take too long
+                if (CALCULATE_ERRORS && i==0 && j==0 && k==0) { // add this to configuration.json
+                    for (Int_t l = 0; l < nSubSamples; l++) {
+                        // Most of the indices are there to create unique histograms
+                        // They don't actually provide interesting information besides debugging
+                        // Don't stare too long at them
+                        TH1D *subHDPhiOS = createSubSampleHistogram(hDPhiOS, l, nSubSamples, FLAVOUR, "OS", i, j, k);
+                        TH1D *subHDPhiSS = createSubSampleHistogram(hDPhiSS, l, nSubSamples, FLAVOUR, "SS", i, j, k);
+                        TH1D *subHTrPtOS = createSubSampleHistogram(hTrPtOS, l, nSubSamples, FLAVOUR, "OS", i, j, k);
+                        TH1D *subHTrPtSS = createSubSampleHistogram(hTrPtSS, l, nSubSamples, FLAVOUR, "SS", i, j, k);
+                        Double_t subYield = calculateOneYield(subHDPhiOS, subHTrPtOS, subHDPhiSS, subHTrPtSS, FLAVOUR, i, j, k, l);
+                        std::cout << "vYields[" << i << "][" << j << "][" << k << "][" << l << "] = " << subYield << std::endl;
+                        std::cout << std::endl;
+                        /*
+                        delete subHDPhiOS;
+                        delete subHTrPtOS;
+                        delete subHDPhiSS;
+                        delete subHTrPtSS;
+                        */
+                       TCanvas *cTestHDPhiOS;
+                       if (i==0 && j==0 && k==0 && l==0) {
+                        cTestHDPhiOS = new TCanvas("testHDPhiOS","testHDPhiOS",600,800);
+                        cTestHDPhiOS->cd();
+                        subHDPhiOS->Draw("hist");
+                        }
+                        if (i==0 && j==0 && k==0 && l==1) {
+                        cTestHDPhiOS->cd();
+                        subHDPhiOS->Draw("same hist");
+                        }
+                    }
+                }
 
                 // Calculate yield value and assign to appropriate place in vector
-                Double_t yield = calculateOneYield(hDPhiOS, hTrPtOS, hDPhiSS, hTrPtSS, FLAVOUR, i, j, k);
+                Double_t yield = calculateOneYield(hDPhiOS, hTrPtOS, hDPhiSS, hTrPtSS, FLAVOUR, i, j, k, 0);
                 if (i >= vYields.size()) { vYields.resize(i + 1); }
                 if (j >= vYields[i].size()) { vYields[i].resize(j + 1); }
                 if (k >= vYields[i][j].size()) { vYields[i][j].resize(k + 1); }
@@ -367,10 +450,11 @@ int improvedPlotting() {
     std::vector<std::vector<std::vector<Double_t>>> vYieldsBeauty;
     std::vector<std::vector<std::vector<Double_t>>> vYieldsCharm;
     vYieldsBeauty = calculateYieldsVector(configs_from_json,"BEAUTY");
-    vYieldsCharm =  calculateYieldsVector(configs_from_json,"CHARM");
+    // vYieldsCharm =  calculateYieldsVector(configs_from_json,"CHARM");
 
     // Draw the balancing plots using the 3D yield vector
-    drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
+    // drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
+    // drawBalancingPlots(configs_from_json,"CHARM", vYieldsCharm);
 
     return 0;
 }
