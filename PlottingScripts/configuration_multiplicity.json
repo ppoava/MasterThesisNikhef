@@ -85,16 +85,32 @@
   ],
 "histograms_to_analyse": [
     {
-      "hDPhi": "hDPhiLL",
-      "hTrPt": "hTrPtL"
+      "hDPhi": "hDPhiM80_100",
+      "hTrPt": "hTrPtM80_100"
     },
     {
-      "hDPhi": "hDPhiII",
-      "hTrPt": "hTrPtI"
+      "hDPhi": "hDPhiM60_80",
+      "hTrPt": "hTrPtM60_80"
     },
     {
-      "hDPhi": "hDPhiHH",
-      "hTrPt": "hTrPtH"
+      "hDPhi": "hDPhiM40_60",
+      "hTrPt": "hTrPtM40_60"
+    },
+    {
+      "hDPhi": "hDPhiM20_40",
+      "hTrPt": "hTrPtM20_40"
+    },
+    {
+      "hDPhi": "hDPhiM5_20",
+      "hTrPt": "hTrPtM5_20"
+    },
+    {
+      "hDPhi": "hDPhiM1_5",
+      "hTrPt": "hTrPtM1_5"
+    },
+    {
+      "hDPhi": "hDPhiM1",
+      "hTrPt": "hTrPtM1"
     }
   ]
 }

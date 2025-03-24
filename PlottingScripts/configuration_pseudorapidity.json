@@ -85,16 +85,20 @@
   ],
 "histograms_to_analyse": [
     {
-      "hDPhi": "hDPhiLL",
-      "hTrPt": "hTrPtL"
+      "hDPhi": "hDPhiEtaCC",
+      "hTrPt": "hTrPtEtaC"
     },
     {
-      "hDPhi": "hDPhiII",
-      "hTrPt": "hTrPtI"
+      "hDPhi": "hDPhiEtaCF",
+      "hTrPt": "hTrPtEtaC"
     },
     {
-      "hDPhi": "hDPhiHH",
-      "hTrPt": "hTrPtH"
+      "hDPhi": "hDPhiEtaFC",
+      "hTrPt": "hTrPtEtaF"
+    },
+    {
+      "hDPhi": "hDPhiEtaFF",
+      "hTrPt": "hTrPtEtaF"
     }
   ]
 }
