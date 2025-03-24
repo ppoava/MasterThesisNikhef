@@ -77,10 +77,45 @@
     },
     {
       "trigger": "Dˆ{+}",
-      "associateOS": "#D0-bar",
+      "associateOS": "D0-bar",
       "associateSS": "Dˆ{0}",
       "OS": "DplusDzerobar.root",
       "SS": "DplusDzero.root"
+    },
+    {
+      "trigger": "Dˆ{+}",
+      "associateOS": "Ds-",
+      "associateSS": "Ds+",
+      "OS": "DplusDsminus.root",
+      "SS": "DplusDsplus.root"
+    },
+    {
+      "trigger": "Dˆ{+}",
+      "associateOS": "Lambda_c(+)-bar",
+      "associateSS": "Lambda_c(+)",
+      "OS": "DplusLambdacplusbar.root",
+      "SS": "DplusLambdacplus.root"
+    },
+    {
+      "trigger": "Dˆ{+}",
+      "associateOS": "Sigma_c(++)-bar",
+      "associateSS": "Sigma_c(++)",
+      "OS": "DplusSigmacplusplusbar.root",
+      "SS": "DplusSigmacplusplus.root"
+    },
+    {
+      "trigger": "Dˆ{+}",
+      "associateOS": "Sigma_c(+)-bar",
+      "associateSS": "Sigma_c(+)",
+      "OS": "DplusSigmacplusbar.root",
+      "SS": "DplusSigmacplus.root"
+    },
+    {
+      "trigger": "Dˆ{+}",
+      "associateOS": "Sigma_c(0)-bar",
+      "associateSS": "Sigma_c(0)",
+      "OS": "DplusSigmaczerobar.root",
+      "SS": "DplusSigmaczero.root"
     }
   ],
 "histograms_to_analyse": [
