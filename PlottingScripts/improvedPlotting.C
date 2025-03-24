@@ -421,9 +421,11 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 
     // Define a template for this plot to set titles, stats, etc.
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), "hYieldsTemplate", nAssociates, 0, nAssociates);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.4);
 
     TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), 800, 600);
     cYields->cd();
+    gPad->SetLogy();
     hYieldsTemplate->Draw("PE");
 
 
@@ -470,6 +472,9 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
                     vHists[i][k]->SetBinError(1+j, 1e-10);
                 }
                 cYields->cd();
+                // TODO: do this with configuration.json and not hard-coded
+                if (i==0) { vHists[0][k]->SetLineColor(kBlue); }
+                if (i==1) { vHists[1][k]->SetLineColor(kRed);  }
                 vHists[i][k]->Draw("same PE");
 
                 std::cout << std::endl;
@@ -490,6 +495,107 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 } // drawBalancingPlots()
 
 
+void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAndErrors vYields) {
+
+
+    std::cout << "*** Drawing balancing baryon/meson ratio plots for " << FLAVOUR << " ***" << std::endl;
+
+
+    // Retrieve settings from configuration.json
+    bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
+    std::string base_dir = configs_from_json.base_dir;
+    std::vector<std::string> vTUNES = configs_from_json.vTUNES;
+    std::vector<TriggerAssociateOSandSS> vTriggerAssociateOSandSS;
+    if (strcmp(FLAVOUR, "BEAUTY") == 0) { vTriggerAssociateOSandSS = configs_from_json.vBeautyTriggerAssociateOSandSS; }
+    if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
+
+    Int_t nTUNES = vTUNES.size();
+    Int_t nAssociates = vTriggerAssociateOSandSS.size();
+    Int_t nDependencies = vHistogramAndTriggerPtHistogramNames.size();
+
+    // Values will be drawn from a 2D vector of TH1D with number of DEPENDENCIES bins
+    // This way the TUNE and ASSOCIATE can be looped over, while the data points will be the DEPENDENCIES
+    TH1D *vHists[nTUNES][nAssociates];
+    std::cout << "number of dependencies: " << nDependencies << std::endl;
+
+    // Define a template for this plot to set titles, stats, etc.
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsBaryonMesonRatioTemplate_%s", FLAVOUR), "hYieldsBaryonMesonRatioTemplate", nDependencies, 0, nDependencies);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.4);
+
+    TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), 800, 600);
+    cYields->cd();
+    hYieldsTemplate->Draw("PE");
+
+
+    // Loop over TUNES
+    for (Int_t i=0; i<nTUNES; i++) {
+
+
+        std::string TUNE = vTUNES[i];
+        std::cout << "starting loop over " << TUNE << std::endl;
+        std::cout << std::endl;
+
+
+        // Loop over ASSOCIATES
+        for (Int_t j=0; j<nAssociates; j++) {
+
+
+            // TODO: fix this bug with associateName and formatting....
+            TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
+            std::string associateName = fileNamesOSandSS.associateOS;
+            // TODO: one can also define this in the configuration.json (if only interested in some, or more, or e.g. strange baryons)
+            if (associateName != "Lambda_b" && associateName != "Sigma_b0") { continue ;} // only for baryons
+            std::cout << "starting loop over associate: " << associateName << std::endl;
+            std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+            std::cout << std::endl;
+
+            // Loop over DEPENDENCIES
+            for (Int_t k=0; k<nDependencies; k++) {
+
+
+                HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
+                std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+
+                vHists[i][j] = new TH1D(Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), nDependencies, 0, nDependencies);
+                vHists[i][j]->SetBinContent(1+k, vYields.vYields[i][j][k] / vYields.vYields[i][0][k]);
+                if (CALCULATE_ERRORS) { 
+                    // TODO: ratio errors as seperate entry in vYieldsBaryonMesonRatioErrors...
+                    vHists[i][j]->SetBinError(1+k, vYields.vYieldsErrors[i][j][k]);
+                }
+                else {
+                    vHists[i][j]->SetBinError(1+k, 1e-10);
+                }
+                cYields->cd();
+                // TODO: do this with configuration.json and not hard-coded
+                if (i==0) { vHists[0][j]->SetLineColor(kBlue); }
+                if (i==1) { vHists[1][j]->SetLineColor(kRed);  }
+                vHists[i][j]->Draw("same PE");
+
+                if (i==0 && j==0) { // only set the template histogram once
+                // Define associate label names for yield plots
+                // TODO: ask this as input vector in configuration.json
+                hYieldsTemplate->GetXaxis()->SetBinLabel(1+k, (hDPhiAndhTrPtNames.hDPhi).c_str());
+            }
+
+                std::cout << std::endl;
+
+
+            } // Loop over DEPENDENCIES
+
+
+        } // Loop over ASSOCIATES
+
+
+    } // Loop over TUNES
+
+
+    return;
+
+
+} // drawBalancingBaryonMesonRatioPlots()
+
+
 int improvedPlotting() {
 
     // Read configurations defined by user in configuration.json
@@ -504,6 +610,10 @@ int improvedPlotting() {
     // Draw the balancing plots using the 3D yield vector
     drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
     // drawBalancingPlots(configs_from_json,"CHARM", vYieldsCharm);
+
+    // Draw the balancing baryon/meson ratio plots
+    drawBalancingBaryonMesonRatioPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
+    // drawBalancingBaryonMesonRatioPlots(configs_from_json,"CHARM", vYieldsCharm);
 
     return 0;
 }
