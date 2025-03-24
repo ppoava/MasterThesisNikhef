@@ -63,6 +63,7 @@ CONFIGS readConfig() {
     std::cout << std::endl;
 
     // Open the JSON configuration file
+    // TODO: make this more general
     std::ifstream configFile("configuration.json");
     if (!configFile.is_open()) {
         std::cerr << "Error opening configuration file." << std::endl;
