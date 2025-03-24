@@ -25,11 +25,11 @@
       "SS": "BplusBzero.root"
     },
     {
-        "trigger": "Bˆ{+}",
-        "associateOS": "Bs0-bar",
-        "associateSS": "B_{s}ˆ{0}",
-        "OS": "BplusBszerobar.root",
-        "SS": "BplusBszero.root"
+      "trigger": "Bˆ{+}",
+      "associateOS": "Bs0-bar",
+      "associateSS": "B_{s}ˆ{0}",
+      "OS": "BplusBszerobar.root",
+      "SS": "BplusBszero.root"
     },
     {
         "trigger": "Bˆ{+}",
@@ -37,6 +37,34 @@
         "associateSS": "B_{c}ˆ{+}",
         "OS": "BplusBcminus.root",
         "SS": "BplusBcplus.root"
+    },
+    {
+      "trigger": "Bˆ{+}",
+      "associateOS": "Lambda_b",
+      "associateSS": "Lambda_b-bar",
+      "OS": "BplusLb.root",
+      "SS": "BplusLbbar.root"
+    },
+    {
+      "trigger": "Bˆ{+}",
+      "associateOS": "Sigma_b+",
+      "associateSS": "Sigma_b(+)-bar",
+      "OS": "BplusSigmabplus.root",
+      "SS": "BplusSigmabplusbar.root"
+    },
+    {
+      "trigger": "Bˆ{+}",
+      "associateOS": "Sigma_b0",
+      "associateSS": "Sigma_b(0)-bar",
+      "OS": "BplusSigmabzero.root",
+      "SS": "BplusSigmabzerobar.root"
+    },
+    {
+      "trigger": "Bˆ{+}",
+      "associateOS": "Sigma_b-",
+      "associateSS": "Sigma_b(-)-bar",
+      "OS": "BplusSigmabminus.root",
+      "SS": "BplusSigmabminusbar.root"
     }
   ],
   "charm_correlations_to_analyse": [
