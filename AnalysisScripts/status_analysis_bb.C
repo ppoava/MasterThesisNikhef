@@ -33,12 +33,13 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 	TFile *output = new TFile(filename,"RECREATE");
 	
 	// OPTION 1: SINGLE FILE
-	// ch1->Add("/data/alice/pveen/ProductionsPythia/output_MONASH_bb_212/Group_1/output.root");
+	ch1->Add("output.root");
 	
 	
 	// OPTION 2: BATCH FILE STRUCTURE
 	// Number of trees to be added to the TChain
 	// This can be changed by the user
+	/*
 	int ntrees = 25; 
 	
 	for( int i = 1; i < ntrees+1;  i++){
@@ -46,7 +47,7 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 	  ch1->Add(Form("Group%i/output.root",i)); // Group%i/output.root
 	}
 	// COMMENT TILL THIS LINE TO DISABLE OPTION 2
-	
+	*/
 	
 	// *** --------- ***
 
