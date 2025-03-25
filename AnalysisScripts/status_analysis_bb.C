@@ -445,7 +445,7 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 	if(nTrigger == 0){
 		cout<<"Have not found any trigger particle with id: "<<id_trigger<<endl;
 		output->Close();
-		return 0;
+		return;
 	}
 	output->Write();
 	output->Close();
@@ -455,7 +455,7 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 }
 
 
-void status_analysis_bb() {
+int status_analysis_bb() {
 
         // Trigger and associate can be chosen as desired, correlations will be created and put into the output ROOT file as named in the function argument
 
