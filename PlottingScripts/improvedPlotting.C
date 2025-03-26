@@ -32,6 +32,7 @@ struct HistogramAndTriggerPtHistogramNames {
 struct YieldsAndErrors {
     std::vector<std::vector<std::vector<Double_t>>> vYields;
     std::vector<std::vector<std::vector<Double_t>>> vYieldsErrors;
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsRatioErrors;
 };
 
 // To be taken from the configuration.json and send to main code
@@ -212,9 +213,6 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
 
     std::cout << "*** Calculating yields for " << FLAVOUR << " ***" << std::endl;
 
-    std::vector<std::vector<std::vector<Double_t>>> vYields;
-    std::vector<std::vector<std::vector<Double_t>>> vYieldsErrors;
-
     // Retrieve settings from configuration.json
     bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
     int nSubSamples = configs_from_json.nSubSamples;
@@ -231,7 +229,15 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
     if (strcmp(FLAVOUR, "CHARM")  == 0) { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
     std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
 
+    // TODO: make these vectors into arrays, don't think vector is necessary
+    // and the subYields are stored in an array anyways
+    std::vector<std::vector<std::vector<Double_t>>> vYields;
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsErrors;
+    std::vector<std::vector<std::vector<Double_t>>> vYieldsRatioErrors;
+    Double_t vSubYields[vTUNES.size()][vTriggerAssociateOSandSS.size()][vHistogramAndTriggerPtHistogramNames.size()][nSubSamples];
 
+
+    // TODO: make vTUNES.size into nTUNES, like in the plotting functions
     // Loop over TUNES
     for (Int_t i=0; i<vTUNES.size(); i++) {
 
@@ -289,11 +295,12 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
                     // Error estimation is independent of binning, however one needs to make sure the 
                     // yield values are within the min and max bin ranges
                     TH1D *hSubYields = new TH1D(Form("hSubYields_%i%i%i", i, j, k), Form("hSubYields_%i%i%i", i, j, k), 50, vYields[i][j][k]/5, vYields[i][j][k]*5);
+                    TH1D *hSubRatioYields = new TH1D(Form("hSubRatioYields_%i%i%i", i, j, k), Form("hSubRatioYields_%i%i%i", i, j, k), 50, (vYields[i][j][k]/vYields[i][0][k])/5, (vYields[i][j][k]/vYields[i][0][k])*5);
 
 
                     for (Int_t l = 1; l < nSubSamples+1; l++) {
 
-
+                        // TODO: close files too; opens too many files now
                         TFile *OStree_subSamples = new TFile((complete_root_dir_sub_samples + "_" + TUNE + "/" + Form("combined_root_%i",l) + "/" + fileNamesOSandSS.OS).c_str());
                         TFile *SStree_subSamples = new TFile((complete_root_dir_sub_samples + "_" + TUNE + "/" + Form("combined_root_%i",l) + "/" + fileNamesOSandSS.SS).c_str());
 
@@ -304,9 +311,12 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
 
                         Double_t subYield = calculateOneYield(hDPhiOS_subSamples, hTrPtOS_subSamples, hDPhiSS_subSamples, hTrPtSS_subSamples,
                                                               FLAVOUR, i, j, k, l);
-                        hSubYields->Fill(subYield);
-                        std::cout << "vsubYields[" << i << "][" << j << "][" << k << "][" << l << "] = " << subYield << std::endl;
+                        vSubYields[i][j][k][l] = subYield;
+                        std::cout << "vSubYields[" << i << "][" << j << "][" << k << "][" << l << "] = " << subYield << std::endl;
                         std::cout << std::endl;
+
+                        hSubYields->Fill(subYield);
+                        hSubRatioYields->Fill((vSubYields[i][j][k][l])/(vSubYields[i][0][k][l]));
 
                         // TODO: necessary?
                         /*
@@ -332,17 +342,30 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
 
 
                     TCanvas *cTestSubYields;
-                    if (i==0 && j==0 && k==0) {
+                    TCanvas *cTestSubRatioYields;
+                    if (i==1 && j==4 && k==0) {
                             cTestSubYields = new TCanvas("testSubYields","testSubYields",600,800);
                             cTestSubYields->cd();
                             hSubYields->Draw("hist");
                         }
+                    if (i==1 && j==4 && k==0) {
+                        cTestSubRatioYields = new TCanvas("testSubRatioYields","testSubRatioYields",600,800);
+                        cTestSubRatioYields->cd();
+                        hSubRatioYields->Draw("hist");
+                    }
                     Double_t yieldError = hSubYields->GetStdDev();
+                    Double_t yieldRatioError = hSubRatioYields->GetStdDev();
                     if (i >= vYieldsErrors.size()) { vYieldsErrors.resize(i + 1); }
                     if (j >= vYieldsErrors[i].size()) { vYieldsErrors[i].resize(j + 1); }
                     if (k >= vYieldsErrors[i][j].size()) { vYieldsErrors[i][j].resize(k + 1); }
                     vYieldsErrors[i][j][k] = yieldError; 
                     std::cout << "vYieldsErrors[" << i << "][" << j << "][" << k << "] = " << vYieldsErrors[i][j][k] << std::endl;
+                    std::cout << std::endl;
+                    if (i >= vYieldsRatioErrors.size()) { vYieldsRatioErrors.resize(i + 1); }
+                    if (j >= vYieldsRatioErrors[i].size()) { vYieldsRatioErrors[i].resize(j + 1); }
+                    if (k >= vYieldsRatioErrors[i][j].size()) { vYieldsRatioErrors[i][j].resize(k + 1); }
+                    vYieldsRatioErrors[i][j][k] = yieldRatioError; 
+                    std::cout << "vYieldsRatioErrors[" << i << "][" << j << "][" << k << "] = " << vYieldsRatioErrors[i][j][k] << std::endl;
                     std::cout << std::endl;
 
 
@@ -362,6 +385,7 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
     YieldsAndErrors vYieldsAndErrors;
     vYieldsAndErrors.vYields = vYields;
     if (CALCULATE_ERRORS) { vYieldsAndErrors.vYieldsErrors = vYieldsErrors; }
+    if (CALCULATE_ERRORS) { vYieldsAndErrors.vYieldsRatioErrors = vYieldsRatioErrors; }
     return vYieldsAndErrors;
 
 
@@ -441,7 +465,6 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
                 vHists[i][k]->SetBinContent(1+j, vYieldsAndErrors.vYields[i][j][k]);
                 if (CALCULATE_ERRORS) { 
                     vHists[i][k]->SetBinError(1+j, vYieldsAndErrors.vYieldsErrors[i][j][k]);
-                    std::cout << "errors = " << vYieldsAndErrors.vYieldsErrors[i][j][k] << std::endl;
                 }
                 else {
                     vHists[i][k]->SetBinError(1+j, 1e-10);
@@ -537,7 +560,8 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
                 vHists[i][j] = new TH1D(Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), nDependencies, 0, nDependencies);
                 vHists[i][j]->SetBinContent(1+k, vYieldsAndErrors.vYields[i][j][k] / vYieldsAndErrors.vYields[i][0][k]);
                 if (CALCULATE_ERRORS) { 
-                    // TODO: ratio errors as seperate entry in vYieldsBaryonMesonRatioErrors...
+                    // TODO: ratio errors as seperate entry in vYieldsBaryonMesonRatioErrors (needs more statistics to work)
+                    // vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsRatioErrors[i][j][k]);
                     vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsErrors[i][j][k]);
                 }
                 else {
