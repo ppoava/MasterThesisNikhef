@@ -47,14 +47,7 @@ Double_t DeltaPhi(Double_t phi1, Double_t phi2) {
 	return fmod(phi1-phi2+2.5*PI,2*PI)-0.5*PI;
 	}
 
-int main(int argc, char** argv) {
-
-	if(argc != 2) {			
-	        cout<<"Error in the number of arguments provided"<<endl;
-		cout<<"Provide only the filepath/name."<<endl;
-		cout<<"Terminating program"<<endl;
-		return 0;
-	}
+int main(int argc, char* argv[]) {
 
 	// For larger simulations it is essential to know the duration of the execution of this script
 	// Start time here

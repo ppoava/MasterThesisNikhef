@@ -33,11 +33,12 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 	TFile *output = new TFile(filename,"RECREATE");
 
 	// OPTION 1: SINGLE FILE
-	// ch1->Add("/data/alice/pveen/ProductionsPythia/output_MONASH_cc_GitLabTest/Group_1/output.root");                     
+	ch1->Add("output.root");
 
 	// OPTION 2: BATCH FILE STRUCTURE
 	// Number of trees to be added to the TChain
 	// This can be changed by the user
+	/*
  	int ntrees = 25;
 	
 	for( int i = 1; i < ntrees+1;  i++) {
@@ -45,6 +46,7 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 	  ch1->Add(Form("Group%i/output.root",i)); 
 	}
 	// COMMENT TILL THIS LINE TO DISABLE OPTION 2
+	*/
 
 	// *** --------- ***
 
@@ -556,7 +558,7 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 	if(nTrigger == 0){
 		cout<<"Have not found any trigger particle with id: "<<id_trigger<<endl;
 		output->Close();
-		return 0;
+		return;
 	}
 	output->Write();
 	output->Close();
@@ -566,7 +568,7 @@ void status_file(Int_t id_trigger,Int_t id_associate, TString filename, const ch
 }
 
 
-void status_analysis_cc() {
+int status_analysis_cc() {
 
         // Trigger and associate can be chosen as desired, correlations will be created and put into the output ROOT file as named in the function argument 
 
