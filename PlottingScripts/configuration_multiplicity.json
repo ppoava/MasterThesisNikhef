@@ -1,6 +1,8 @@
 {
-"calculate_errors": false,
-"nSubSamples": 40,
+"calculate_errors": true,
+"bb_bar_complete_root_dir_sub_samples":"/Users/pv280546/FromRemote/combined_root_subSamples_bb_250",
+"cc_bar_complete_root_dir_sub_samples":"/Users/pv280546/FromRemote/combined_root_subSamples_cc_250",
+"nSubSamples": 10,
 
 "base_dir": "/Users/pv280546/Documents/GitHub/MasterThesisNikhef/RootFiles",
 "PYTHIA_TUNES": [
