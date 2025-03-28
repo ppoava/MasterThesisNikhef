@@ -307,9 +307,8 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
 
 
                     for (Int_t l = 1; l < nSubSamples+1; l++) {
-                        
 
-                        // TODO: close files too; opens too many files now
+
                         TFile *OStree_subSamples = new TFile((complete_root_dir_sub_samples + "_" + TUNE + "/" + Form("combined_root_%i",l) + "/" + fileNamesOSandSS.OS).c_str());
                         TFile *SStree_subSamples = new TFile((complete_root_dir_sub_samples + "_" + TUNE + "/" + Form("combined_root_%i",l) + "/" + fileNamesOSandSS.SS).c_str());
 
@@ -327,6 +326,7 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
                         hSubYields->Fill(subYield);
                         hSubRatioYields->Fill((vSubYields[i][j][k][l])/(vSubYields[i][0][k][l]));
 
+                        // TODO: debug checks not appearing anymore due to memory deletion?
                         TCanvas *cTestHDPhiOS;
                         if (i==0 && j==0 && k==0 && l==1) {
                             cTestHDPhiOS = new TCanvas("testHDPhiOS","testHDPhiOS",600,800);
@@ -339,6 +339,8 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
                         }
 
                         // TODO: Close and delete more things? Memory issuse?
+                        // Seems to automatically close histograms too?
+                        // Free memory
                         OStree_subSamples->Close();
                         SStree_subSamples->Close();
 
@@ -378,6 +380,12 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
 
 
             } // Loop over DEPENDENCIES
+
+
+            // TODO: cannot seem to draw 'test' plots for the yields anymore when this is enabled?
+            // Free memory
+            // OStree->Close();
+            // SStree->Close();
 
 
         } // Loop over ASSOCIATES
@@ -565,12 +573,17 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
                 vHists[i][j] = new TH1D(Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), nDependencies, 0, nDependencies);
                 vHists[i][j]->SetBinContent(1+k, vYieldsAndErrors.vYields[i][j][k] / vYieldsAndErrors.vYields[i][0][k]);
                 if (CALCULATE_ERRORS) { 
-                    // TODO: ratio errors as seperate entry in vYieldsBaryonMesonRatioErrors (needs more statistics to work)
-                    // vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsRatioErrors[i][j][k]);
+                    // Several options for error calculation/propagation
+                    // Ratio calculated seperately:
+                    vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsRatioErrors[i][j][k]);
+                    // Naive error propagation (assuming no correlation):
+                    /*
                     vHists[i][j]->SetBinError(1+k, propagateRatioError(vYieldsAndErrors.vYields[i][j][k], 
                                                                        vYieldsAndErrors.vYields[i][0][k],
                                                                        vYieldsAndErrors.vYieldsErrors[i][j][k],
                                                                        vYieldsAndErrors.vYieldsErrors[i][0][k]));
+                    */
+                    // Placeholder; same error as single yield:
                     // vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsErrors[i][j][k]);
                 }
                 else {
