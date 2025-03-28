@@ -4,6 +4,7 @@
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <random>
+#include <cmath>
 
 // Include ROOT headers
 #include "TFile.h"
@@ -180,6 +181,13 @@ CONFIGS readConfig() {
 } // readConfig()
 
 
+// Simple function that returns the propagated error from a ratio A/B with errors for A and B
+Double_t propagateRatioError(Double_t valueA, Double_t valueB, Double_t errorA, Double_t errorB) {
+    Double_t relativeUncertainty = pow((errorA / valueA), 2) + pow((errorB / valueB), 2);
+    return ((valueA / valueB) * sqrt(relativeUncertainty));
+} // propagateRatioError()
+
+
 // Simple function to calculate the yield given by two normalised OS and SS histograms
 // Their angular spectra are subtracted (OS - SS) to reduce background
 // and the full spectrum is integrated, though there is a posiblity to chose the integration range
@@ -299,6 +307,7 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
 
 
                     for (Int_t l = 1; l < nSubSamples+1; l++) {
+                        
 
                         // TODO: close files too; opens too many files now
                         TFile *OStree_subSamples = new TFile((complete_root_dir_sub_samples + "_" + TUNE + "/" + Form("combined_root_%i",l) + "/" + fileNamesOSandSS.OS).c_str());
@@ -318,14 +327,6 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
                         hSubYields->Fill(subYield);
                         hSubRatioYields->Fill((vSubYields[i][j][k][l])/(vSubYields[i][0][k][l]));
 
-                        // TODO: necessary?
-                        /*
-                        delete hPhiOS_subSamples;
-                        delete hTrPtOS_subSamples;
-                        delete hDPhiSS_subSamples;
-                        delete hTrPtSS_subSamples;
-                        */
-
                         TCanvas *cTestHDPhiOS;
                         if (i==0 && j==0 && k==0 && l==1) {
                             cTestHDPhiOS = new TCanvas("testHDPhiOS","testHDPhiOS",600,800);
@@ -336,6 +337,10 @@ YieldsAndErrors calculateYieldsVector(CONFIGS configs_from_json, const char* FLA
                             cTestHDPhiOS->cd();
                             hDPhiOS_subSamples->Draw("same hist");
                         }
+
+                        // TODO: Close and delete more things? Memory issuse?
+                        OStree_subSamples->Close();
+                        SStree_subSamples->Close();
 
 
                     } // Loop over SUBSAMPLES
@@ -562,7 +567,11 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
                 if (CALCULATE_ERRORS) { 
                     // TODO: ratio errors as seperate entry in vYieldsBaryonMesonRatioErrors (needs more statistics to work)
                     // vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsRatioErrors[i][j][k]);
-                    vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsErrors[i][j][k]);
+                    vHists[i][j]->SetBinError(1+k, propagateRatioError(vYieldsAndErrors.vYields[i][j][k], 
+                                                                       vYieldsAndErrors.vYields[i][0][k],
+                                                                       vYieldsAndErrors.vYieldsErrors[i][j][k],
+                                                                       vYieldsAndErrors.vYieldsErrors[i][0][k]));
+                    // vHists[i][j]->SetBinError(1+k, vYieldsAndErrors.vYieldsErrors[i][j][k]);
                 }
                 else {
                     vHists[i][j]->SetBinError(1+k, 1e-10);
