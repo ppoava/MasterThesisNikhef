@@ -14,7 +14,13 @@
 
 using json = nlohmann::json;
 
-// TODO: put structs in a header file
+// TODO: put structs in a header file (only after plotting is done in configuration.json)
+
+// TODO: add verbose/debug flags to configuration.json
+
+// TODO: add strangeness to configurations (though won't work; no simulations available; maybe comment it out?)
+
+// TODO: update the other configuration.json files with the "configuration.json" script
 
 // Define a structure to hold OS and SS correlation file names
 struct TriggerAssociateOSandSS {
@@ -34,6 +40,14 @@ struct YieldsAndErrors {
     std::vector<std::vector<std::vector<Double_t>>> vYields;
     std::vector<std::vector<std::vector<Double_t>>> vYieldsErrors;
     std::vector<std::vector<std::vector<Double_t>>> vYieldsRatioErrors;
+};
+
+struct canvasConfigs {
+    std::string canvasName;
+    std::string drawFunctionToUse; // name of functions defined in improvedPlotting()
+    std::vector<std::string> vTUNES; // tune to be drawn on given canvas
+    std::string FLAVOUR; // can only be beauty or charm; drawing both on the same is very annoying to implement.. TODO?
+    // TODO: add other canvas settings (e.g. xMin, xMax, setLogy, etc.)
 };
 
 // To be taken from the configuration.json and send to main code
@@ -59,16 +73,19 @@ struct CONFIGS {
 
     // (hDPhiLL, hTrPtL), ...
     std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames;
+
+    // Plotting settings
+    std::vector<canvasConfigs> vCanvasConfigs;
 };
 
-CONFIGS readConfig() {
+CONFIGS readConfig(const char* configurations) {
 
-    std::cout << "Reading configuration.json" << std::endl;
+    std::cout << std::endl;
+    std::cout << "*** Reading configuration.json ***" << std::endl;
     std::cout << std::endl;
 
     // Open the JSON configuration file
-    // TODO: make this more general
-    std::ifstream configFile("configuration_multiplicity.json");
+    std::ifstream configFile(configurations);
     if (!configFile.is_open()) {
         std::cerr << "Error opening configuration file." << std::endl;
     }
@@ -158,10 +175,27 @@ CONFIGS readConfig() {
     }
     std::cout << std::endl;
 
-    std::cout << "OKAY (or not)" << std::endl;
+    // How should everything be drawn?
+    std::vector<canvasConfigs> vCanvasConfigs;
+    for (const auto& configPair : config["canvases_to_be_drawn"]) {
+        canvasConfigs pair;
+        pair.canvasName = configPair["canvas_name"].get<std::string>();
+        pair.drawFunctionToUse = configPair["draw_function_to_use"].get<std::string>();
+        std::vector<std::string> vCanvasTUNES;
+        for (const auto& TUNE : config["TUNES"]) {
+            vCanvasTUNES.push_back(TUNE);
+        }
+        pair.FLAVOUR = configPair["FLAVOUR"].get<std::string>();
+        vCanvasConfigs.push_back(pair);
+    }
+    for (const auto& pair : vCanvasConfigs) {
+        std::cout << "canvasName: " << pair.canvasName << std::endl;
+        std::cout << "drawFunctionToUse: " << pair.drawFunctionToUse << std::endl;
+        // TODO: add print for vTUNES (after general print vector function)
+    }
     std::cout << std::endl;
 
-    // TODO: give short summary of settings given and what the output yield vector will look like
+    // TODO: make a function that prints content of a vector
 
     CONFIGS configs_from_json;
     configs_from_json.CALCULATE_ERRORS = CALCULATE_ERRORS;
@@ -175,6 +209,22 @@ CONFIGS readConfig() {
     configs_from_json.vBeautyTriggerAssociateOSandSS = vBeautyTriggerAssociateOSandSS;
     configs_from_json.vCharmTriggerAssociateOSandSS = vCharmTriggerAssociateOSandSS;
     configs_from_json.vHistogramAndTriggerPtHistogramNames = vHistogramAndTriggerPtHistogramNames;
+    configs_from_json.vCanvasConfigs = vCanvasConfigs;
+
+    std::cout << "Configurations successfully read from JSON with parameters:" << std::endl;
+    std::cout << "- CALCULATE_ERRORS = " << CALCULATE_ERRORS << std::endl;
+    std::cout << "- nSubSamples = " << nSubSamples << std::endl;
+    std::cout << "- base_dir = " << base_dir << std::endl;
+    std::cout << "- vTUNES.size() = " << vTUNES.size() << std::endl;
+    std::cout << "- bbBarDir = " << bbBarDir << std::endl;
+    std::cout << "- ccBarDir = " << ccBarDir << std::endl;
+    std::cout << "- bbBarDir_sub_samples = " << bbBarDir_sub_samples << std::endl;
+    std::cout << "- ccBarDir_sub_samples = " << ccBarDir_sub_samples << std::endl;
+    std::cout << "- vBeautyTriggerAssociateOSandSS.size()" << vBeautyTriggerAssociateOSandSS.size() << std::endl;
+    std::cout << "- vCharmTriggerAssociateOSandSS.size()" << vCharmTriggerAssociateOSandSS.size() << std::endl;
+    std::cout << "- vHistogramAndTriggerPtHistogramNames.size()" << vHistogramAndTriggerPtHistogramNames.size() << std::endl;
+    // vCanvasConfigs
+    std::cout << std::endl;
 
     return configs_from_json;
 
@@ -182,6 +232,7 @@ CONFIGS readConfig() {
 
 
 // Simple function that returns the propagated error from a ratio A/B with errors for A and B
+// Assumes A and B are uncorrelated
 Double_t propagateRatioError(Double_t valueA, Double_t valueB, Double_t errorA, Double_t errorB) {
     Double_t relativeUncertainty = pow((errorA / valueA), 2) + pow((errorB / valueB), 2);
     return ((valueA / valueB) * sqrt(relativeUncertainty));
@@ -615,24 +666,57 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
 } // drawBalancingBaryonMesonRatioPlots()
 
 
-int improvedPlotting() {
+// Run macro with 
+// >> root 'improvedPlotting.C("configuration_multiplicity.json")'
+int improvedPlotting(const char* configuration) {
 
     // Read configurations defined by user in configuration.json
-    CONFIGS configs_from_json = readConfig();
+    CONFIGS configs_from_json = readConfig(configuration);
 
     // Calculate the 3D yield vector
     YieldsAndErrors vYieldsBeauty;
     YieldsAndErrors vYieldsCharm;
-    // vYieldsBeauty = calculateYieldsVector(configs_from_json,"BEAUTY");
+    vYieldsBeauty = calculateYieldsVector(configs_from_json,"BEAUTY");
     vYieldsCharm =  calculateYieldsVector(configs_from_json,"CHARM");
 
-    // Draw the balancing plots using the 3D yield vector
-    // drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
+    // Draw the balancing plots using the 3D yield vector and configurations given
+    std::vector<canvasConfigs> vCanvasConfigs = configs_from_json.vCanvasConfigs;
+    std::vector<TCanvas*> vCanvases;
+    YieldsAndErrors vYields; // TODO: define variables in loop or above?
+    for (const auto& canvasConfig : vCanvasConfigs) {
+        std::string canvasName = canvasConfig.canvasName;
+        std::string drawFunctionToUse = canvasConfig.drawFunctionToUse;
+        std::vector<std::string> vTUNES = canvasConfig.vTUNES;
+        std::string FLAVOUR = canvasConfig.FLAVOUR;
+        // TODO: alternatively, just don't define vYieldsBeauty above, 
+        // it's a bit redundant now..
+        if (strcmp(FLAVOUR.c_str(), "BEAUTY") == 0)  { vYields = vYieldsBeauty; }
+        if (strcmp(FLAVOUR.c_str(), "CHARM" ) == 0)  { vYields = vYieldsCharm;  }
+
+        if (strcmp(drawFunctionToUse.c_str(), "drawBalancingPlots") == 0)  { 
+            drawBalancingPlots(configs_from_json,FLAVOUR.c_str(),vYields); 
+        }
+        if (strcmp(drawFunctionToUse.c_str(), "drawBalancingBaryonMesonRatioPlots") == 0)  { 
+            drawBalancingBaryonMesonRatioPlots(configs_from_json,FLAVOUR.c_str(),vYields); 
+        }
+        // TODO: add other configurations for drawing (e.g. xMax, xMin, etc.)
+    }
+
+    // TODO: add the updated simulations to the RootFiles (including subSamples)
+
+    // TODO: in existing functions, add the TUNE[i]/TUNE[j] subratio plots
+    // (including error propagation)
+
+    // TODO: add the part for miniPads
+
+    // TODO: only for simple tests, remove
+    /*
+    drawBalancingPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
     drawBalancingPlots(configs_from_json,"CHARM", vYieldsCharm);
 
-    // Draw the balancing baryon/meson ratio plots
-    // drawBalancingBaryonMesonRatioPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
+    drawBalancingBaryonMesonRatioPlots(configs_from_json,"BEAUTY",vYieldsBeauty);
     drawBalancingBaryonMesonRatioPlots(configs_from_json,"CHARM", vYieldsCharm);
+    */
 
     return 0;
 }
