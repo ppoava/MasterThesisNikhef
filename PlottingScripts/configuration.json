@@ -156,6 +156,50 @@
       "FLAVOUR": "BEAUTY",
       "nominator_TUNE": "JUNCTIONS",
       "denominator_TUNE": "MONASH"
+    },
+    {
+      "canvas_name": "beauty_balancing_baryon_over_meson_ratio",
+      "draw_function_to_use": "drawBalancingBaryonMesonRatioPlots",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "BEAUTY",
+      "nominator_TUNE": "NONE",
+      "denominator_TUNE": "NONE"
+    },
+    {
+      "canvas_name": "charm_balancing_all",
+      "draw_function_to_use": "drawBalancingPlots",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "CHARM",
+      "nominator_TUNE": "NONE",
+      "denominator_TUNE": "NONE"
+    },
+    {
+      "canvas_name": "charm_balancing_JUNCTIONS_over_MONASH",
+      "draw_function_to_use": "drawBalancingPlotsTUNERatios",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "CHARM",
+      "nominator_TUNE": "JUNCTIONS",
+      "denominator_TUNE": "MONASH"
+    },
+    {
+      "canvas_name": "charm_balancing_baryon_over_meson_ratio",
+      "draw_function_to_use": "drawBalancingBaryonMesonRatioPlots",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "CHARM",
+      "nominator_TUNE": "NONE",
+      "denominator_TUNE": "NONE"
     }
   ]
 }

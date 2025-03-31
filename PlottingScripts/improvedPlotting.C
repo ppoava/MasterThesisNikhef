@@ -83,11 +83,10 @@ struct CONFIGS {
 // Function to find the index of a tune name
 int findTuneIndex(const std::vector<std::string>& vTUNES, const std::string& tuneName) {
     auto it = std::find(vTUNES.begin(), vTUNES.end(), tuneName);
-
     if (it != vTUNES.end()) {
-        return std::distance(vTUNES.begin(), it); // Return the found index
+        return std::distance(vTUNES.begin(), it);
     } else {
-        return -1; // Return -1 if not found
+        return -1;
     }
 }
 
@@ -199,7 +198,6 @@ CONFIGS readConfig(const char* configurations) {
             vCanvasTUNES.push_back(TUNE);
         }
         pair.FLAVOUR = configPair["FLAVOUR"].get<std::string>();
-        vCanvasConfigs.push_back(pair);
         std::string nominatorTuneName = configPair["nominator_TUNE"].get<std::string>();
         pair.indexNominatorTUNE = findTuneIndex(vTUNES, nominatorTuneName);
         if (pair.indexNominatorTUNE != -1) {
@@ -214,6 +212,8 @@ CONFIGS readConfig(const char* configurations) {
         } else {
             std::cout << nominatorTuneName << " ERROR: TUNE not found in vTUNES." << std::endl;
         }
+        // Sumarise configurations in struct, save per canvas
+        vCanvasConfigs.push_back(pair);
     }
     for (const auto& pair : vCanvasConfigs) {
         std::cout << "canvasName: " << pair.canvasName << std::endl;
@@ -250,7 +250,7 @@ CONFIGS readConfig(const char* configurations) {
     std::cout << "- vBeautyTriggerAssociateOSandSS.size() = " << vBeautyTriggerAssociateOSandSS.size() << std::endl;
     std::cout << "- vCharmTriggerAssociateOSandSS.size() = " << vCharmTriggerAssociateOSandSS.size() << std::endl;
     std::cout << "- vHistogramAndTriggerPtHistogramNames.size() = " << vHistogramAndTriggerPtHistogramNames.size() << std::endl;
-    std::cout << "- indexNominatorTUNE for 2nd canvas = " << (configs_from_json.vCanvasConfigs[1]).indexNominatorTUNE << std::endl;
+    std::cout << "- indexDenominatorTUNE for 2nd canvas = " << (configs_from_json.vCanvasConfigs[1]).indexDenominatorTUNE << std::endl;
     // vCanvasConfigs
     std::cout << std::endl;
 
@@ -506,10 +506,11 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
     // Values will be drawn from a 2D vector of TH1D with number of ASSOCIATES bins
     // This way the TUNE and DEPENDENCY can be looped over, while the data points will be the ASSOCIATES
     TH1D *vHists[nTUNES][nDependencies];
-    std::cout << "number of associates: " << nAssociates << std::endl;
+    // TODO: verbose
+    // std::cout << "number of associates: " << nAssociates << std::endl;
 
     // Define a template for this plot to set titles, stats, etc.
-    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), "hYieldsTemplate", nAssociates, 0, nAssociates);
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), Form("hYieldsTemplate_%s", FLAVOUR), nAssociates, 0, nAssociates);
     hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.8);
 
     TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), 800, 600);
@@ -524,8 +525,9 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 
 
         std::string TUNE = vTUNES[i];
-        std::cout << "starting loop over " << TUNE << std::endl;
-        std::cout << std::endl;
+        // TODO: verbose
+        // std::cout << "starting loop over " << TUNE << std::endl;
+        // std::cout << std::endl;
 
 
         // Loop over ASSOCIATES
@@ -535,23 +537,24 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
             // TODO: fix this bug with associateName and formatting....
             TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
             std::string associateName = fileNamesOSandSS.associateOS;
-            std::cout << "starting loop over associate: " << associateName << std::endl;
-            std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+            // TODO: verbose
+            // std::cout << "starting loop over associate: " << associateName << std::endl;
+            // std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
 
             if (i==0) { // only set the template histogram once
                 // Define associate label names for yield plots
                 hYieldsTemplate->GetXaxis()->SetBinLabel(1+j, associateName.c_str());
             }
-
-
-            std::cout << std::endl;
+            // TODO: verbose
+            // std::cout << std::endl;
 
             // Loop over DEPENDENCIES
             for (Int_t k=0; k<nDependencies; k++) {
 
 
                 HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
-                std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+                // TODO: verbose
+                // std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
                 vHists[i][k] = new TH1D(Form("hYields_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYields_%s_%i_%i_%i", FLAVOUR, i, j, k), nAssociates, 0, nAssociates);
                 vHists[i][k]->SetBinContent(1+j, vYieldsAndErrors.vYields[i][j][k]);
@@ -567,7 +570,8 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
                 if (i==1) { vHists[1][k]->SetLineColor(kRed);  }
                 vHists[i][k]->Draw("same PE");
 
-                std::cout << std::endl;
+                // TODO: verbose
+                // std::cout << std::endl;
 
 
             } // Loop over DEPENDENCIES
@@ -589,8 +593,7 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
                                   Int_t indexNominatorTUNE, Int_t indexDenominatorTUNE) {
 
 
-    std::cout << "*** Drawing balancing plots with TUNE ratios for " << FLAVOUR << 
-                 " and TUNE " << indexNominatorTUNE << "/" << indexDenominatorTUNE << " ***" << std::endl;
+    std::cout << "*** Drawing balancing plots with TUNE ratios for " << FLAVOUR;
 
 
     // Retrieve settings from configuration.json
@@ -602,17 +605,20 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
     if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
     std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
 
+    std::cout << " and TUNE " << vTUNES[indexNominatorTUNE] << "/" << vTUNES[indexDenominatorTUNE] << " ***" << std::endl;
+
     Int_t nAssociates = vTriggerAssociateOSandSS.size();
     Int_t nDependencies = vHistogramAndTriggerPtHistogramNames.size();
 
     // Values will be drawn from a 2D vector of TH1D with number of ASSOCIATES bins
     // This way the TUNE and DEPENDENCY can be looped over, while the data points will be the ASSOCIATES
     TH1D *vHists[nDependencies];
-    std::cout << "number of associates: " << nAssociates << std::endl;
+    // TODO: verbose
+    // std::cout << "number of associates: " << nAssociates << std::endl;
 
     // Define a template for this plot to set titles, stats, etc.
-    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTUNERatiosTemplate_%s", FLAVOUR), "hYieldsTUNERatiosTemplate", nAssociates, 0, nAssociates);
-    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.8);
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTUNERatiosTemplate_%s", FLAVOUR), Form("hYieldsTUNERatiosTemplate_%s", FLAVOUR), nAssociates, 0, nAssociates);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-1,1e3);
 
     TCanvas *cYields = new TCanvas(Form("cYieldsTUNERatios_%s", FLAVOUR), Form("cYieldsTUNERatios_%s", FLAVOUR), 800, 600);
     cYields->cd();
@@ -620,8 +626,9 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
 
-    std::cout << "dividing " << vTUNES[indexNominatorTUNE] << "/" << vTUNES[indexDenominatorTUNE] << std::endl;
-    std::cout << std::endl;
+    // TODO: verbose
+    // std::cout << "dividing " << vTUNES[indexNominatorTUNE] << "/" << vTUNES[indexDenominatorTUNE] << std::endl;
+    // std::cout << std::endl;
 
 
     // Loop over ASSOCIATES
@@ -631,11 +638,12 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
         // TODO: fix this bug with associateName and formatting....
         TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
         std::string associateName = fileNamesOSandSS.associateOS;
-        std::cout << "starting loop over associate: " << associateName << std::endl;
-        std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+        // TODO: verbose
+        // std::cout << "starting loop over associate: " << associateName << std::endl;
+        // std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
         // Define associate label names for yield plots
         hYieldsTemplate->GetXaxis()->SetBinLabel(1+j, associateName.c_str());
-        std::cout << std::endl;
+        // std::cout << std::endl;
 
 
         // Loop over DEPENDENCIES
@@ -643,7 +651,8 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
 
 
             HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
-            std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+            // TODO: verbose
+            // std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
             vHists[k] = new TH1D(Form("hYields_%s_%i_%i", FLAVOUR, j, k), Form("hYields_%s_%i_%i", FLAVOUR, j, k), nAssociates, 0, nAssociates);
             vHists[k]->SetBinContent(1+j, vYieldsAndErrors.vYields[indexNominatorTUNE][j][k]/vYieldsAndErrors.vYieldsErrors[indexDenominatorTUNE][j][k]);
@@ -651,9 +660,9 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
                 // TODO: implement ratio error in yield code
                 // vHists[k]->SetBinError(1+j, vYieldsAndErrors.vYieldsErrors[i][j][k]);
                 vHists[k]->SetBinError(1+j, propagateRatioError(vYieldsAndErrors.vYields[indexNominatorTUNE][j][k], 
-                                                                   vYieldsAndErrors.vYields[indexDenominatorTUNE][j][k],
-                                                                   vYieldsAndErrors.vYieldsErrors[indexNominatorTUNE][j][k],
-                                                                   vYieldsAndErrors.vYieldsErrors[indexDenominatorTUNE][j][k]));
+                                                                vYieldsAndErrors.vYields[indexDenominatorTUNE][j][k],
+                                                                vYieldsAndErrors.vYieldsErrors[indexNominatorTUNE][j][k],
+                                                                vYieldsAndErrors.vYieldsErrors[indexDenominatorTUNE][j][k]));
             }
             else {
                 vHists[k]->SetBinError(1+j, 1e-10);
@@ -662,7 +671,8 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
             vHists[k]->SetLineColor(kBlack);
             vHists[k]->Draw("same PE");
 
-            std::cout << std::endl;
+            // TODO: verbose
+            // std::cout << std::endl;
 
 
         } // Loop over DEPENDENCIES
@@ -699,10 +709,11 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
     // Values will be drawn from a 2D vector of TH1D with number of DEPENDENCIES bins
     // This way the TUNE and ASSOCIATE can be looped over, while the data points will be the DEPENDENCIES
     TH1D *vHists[nTUNES][nAssociates];
-    std::cout << "number of dependencies: " << nDependencies << std::endl;
+    // TODO: verbose
+    // std::cout << "number of dependencies: " << nDependencies << std::endl;
 
     // Define a template for this plot to set titles, stats, etc.
-    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsBaryonMesonRatioTemplate_%s", FLAVOUR), "hYieldsBaryonMesonRatioTemplate", nDependencies, 0, nDependencies);
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsBaryonMesonRatioTemplate_%s", FLAVOUR), Form("hYieldsBaryonMesonRatioTemplate_%s", FLAVOUR), nDependencies, 0, nDependencies);
     hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.2);
 
     TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), 800, 600);
@@ -716,8 +727,9 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
 
 
         std::string TUNE = vTUNES[i];
-        std::cout << "starting loop over " << TUNE << std::endl;
-        std::cout << std::endl;
+        // TODO: verbose
+        // std::cout << "starting loop over " << TUNE << std::endl;
+        // std::cout << std::endl;
 
 
         // Loop over ASSOCIATES
@@ -730,16 +742,18 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
             // TODO: one can also define this in the configuration.json (if only interested in some, or more, or e.g. strange baryons)
             if (associateName != "Lambda_b" && associateName != "Sigma_b0" &&
                 associateName != "Lambda_c(+)-bar" && associateName != "Sigma_c(+)-bar") { continue ;} // only for baryons
-            std::cout << "starting loop over associate: " << associateName << std::endl;
-            std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
-            std::cout << std::endl;
+            // TODO: verbose
+            // std::cout << "starting loop over associate: " << associateName << std::endl;
+            // std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+            // std::cout << std::endl;
 
             // Loop over DEPENDENCIES
             for (Int_t k=0; k<nDependencies; k++) {
 
 
                 HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
-                std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+                // TODO: verbose
+                // std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
 
                 vHists[i][j] = new TH1D(Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), Form("hYieldsBaryonMesonRatio_%s_%i_%i_%i", FLAVOUR, i, j, k), nDependencies, 0, nDependencies);
                 vHists[i][j]->SetBinContent(1+k, vYieldsAndErrors.vYields[i][j][k] / vYieldsAndErrors.vYields[i][0][k]);
@@ -768,7 +782,8 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
 
                 hYieldsTemplate->GetXaxis()->SetBinLabel(1+k, (hDPhiAndhTrPtNames.hDPhi).c_str());
 
-                std::cout << std::endl;
+                // TODO: verbose
+                // std::cout << std::endl;
 
 
             } // Loop over DEPENDENCIES
@@ -818,8 +833,6 @@ int improvedPlotting(const char* configuration) {
         if (strcmp(drawFunctionToUse.c_str(), "drawBalancingPlots") == 0)  { 
             drawBalancingPlots(configs_from_json,FLAVOUR.c_str(),vYields); 
         }
-        std::cout << drawFunctionToUse << std::endl;
-        std::cout << indexNominatorTUNE << std::endl;
         if (strcmp(drawFunctionToUse.c_str(), "drawBalancingPlotsTUNERatios") == 0)  { 
             drawBalancingPlotsTUNERatios(configs_from_json,FLAVOUR.c_str(),vYields,indexNominatorTUNE,indexDenominatorTUNE); 
         }
