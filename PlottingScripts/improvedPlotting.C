@@ -47,6 +47,8 @@ struct canvasConfigs {
     std::string drawFunctionToUse; // name of functions defined in improvedPlotting()
     std::vector<std::string> vTUNES; // tune to be drawn on given canvas
     std::string FLAVOUR; // can only be beauty or charm; drawing both on the same is very annoying to implement.. TODO?
+    Int_t indexNominatorTUNE; // used for TUNE ratio plots, e.g. MONASH/JUNCTIONS to study enhancement explicitly
+    Int_t indexDenominatorTUNE;
     // TODO: add other canvas settings (e.g. xMin, xMax, setLogy, etc.)
 };
 
@@ -77,6 +79,17 @@ struct CONFIGS {
     // Plotting settings
     std::vector<canvasConfigs> vCanvasConfigs;
 };
+
+// Function to find the index of a tune name
+int findTuneIndex(const std::vector<std::string>& vTUNES, const std::string& tuneName) {
+    auto it = std::find(vTUNES.begin(), vTUNES.end(), tuneName);
+
+    if (it != vTUNES.end()) {
+        return std::distance(vTUNES.begin(), it); // Return the found index
+    } else {
+        return -1; // Return -1 if not found
+    }
+}
 
 CONFIGS readConfig(const char* configurations) {
 
@@ -187,6 +200,20 @@ CONFIGS readConfig(const char* configurations) {
         }
         pair.FLAVOUR = configPair["FLAVOUR"].get<std::string>();
         vCanvasConfigs.push_back(pair);
+        std::string nominatorTuneName = configPair["nominator_TUNE"].get<std::string>();
+        pair.indexNominatorTUNE = findTuneIndex(vTUNES, nominatorTuneName);
+        if (pair.indexNominatorTUNE != -1) {
+            std::cout << "Index of " << nominatorTuneName << " is: " << pair.indexNominatorTUNE << std::endl;
+        } else {
+            std::cout << nominatorTuneName << " ERROR: TUNE not found in vTUNES." << std::endl;
+        }
+        std::string denominatorTuneName = configPair["denominator_TUNE"].get<std::string>();
+        pair.indexDenominatorTUNE = findTuneIndex(vTUNES, denominatorTuneName);
+        if (pair.indexDenominatorTUNE != -1) {
+            std::cout << "Index of " << denominatorTuneName << " is: " << pair.indexDenominatorTUNE << std::endl;
+        } else {
+            std::cout << nominatorTuneName << " ERROR: TUNE not found in vTUNES." << std::endl;
+        }
     }
     for (const auto& pair : vCanvasConfigs) {
         std::cout << "canvasName: " << pair.canvasName << std::endl;
@@ -220,9 +247,10 @@ CONFIGS readConfig(const char* configurations) {
     std::cout << "- ccBarDir = " << ccBarDir << std::endl;
     std::cout << "- bbBarDir_sub_samples = " << bbBarDir_sub_samples << std::endl;
     std::cout << "- ccBarDir_sub_samples = " << ccBarDir_sub_samples << std::endl;
-    std::cout << "- vBeautyTriggerAssociateOSandSS.size()" << vBeautyTriggerAssociateOSandSS.size() << std::endl;
-    std::cout << "- vCharmTriggerAssociateOSandSS.size()" << vCharmTriggerAssociateOSandSS.size() << std::endl;
-    std::cout << "- vHistogramAndTriggerPtHistogramNames.size()" << vHistogramAndTriggerPtHistogramNames.size() << std::endl;
+    std::cout << "- vBeautyTriggerAssociateOSandSS.size() = " << vBeautyTriggerAssociateOSandSS.size() << std::endl;
+    std::cout << "- vCharmTriggerAssociateOSandSS.size() = " << vCharmTriggerAssociateOSandSS.size() << std::endl;
+    std::cout << "- vHistogramAndTriggerPtHistogramNames.size() = " << vHistogramAndTriggerPtHistogramNames.size() << std::endl;
+    std::cout << "- indexNominatorTUNE for 2nd canvas = " << (configs_from_json.vCanvasConfigs[1]).indexNominatorTUNE << std::endl;
     // vCanvasConfigs
     std::cout << std::endl;
 
@@ -557,6 +585,98 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 } // drawBalancingPlots()
 
 
+void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAndErrors vYieldsAndErrors,
+                                  Int_t indexNominatorTUNE, Int_t indexDenominatorTUNE) {
+
+
+    std::cout << "*** Drawing balancing plots with TUNE ratios for " << FLAVOUR << 
+                 " and TUNE " << indexNominatorTUNE << "/" << indexDenominatorTUNE << " ***" << std::endl;
+
+
+    // Retrieve settings from configuration.json
+    bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
+    std::string base_dir = configs_from_json.base_dir;
+    std::vector<std::string> vTUNES = configs_from_json.vTUNES; // TODO: put the name of the tune in output for clarity?
+    std::vector<TriggerAssociateOSandSS> vTriggerAssociateOSandSS;
+    if (strcmp(FLAVOUR, "BEAUTY") == 0) { vTriggerAssociateOSandSS = configs_from_json.vBeautyTriggerAssociateOSandSS; }
+    if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
+
+    Int_t nAssociates = vTriggerAssociateOSandSS.size();
+    Int_t nDependencies = vHistogramAndTriggerPtHistogramNames.size();
+
+    // Values will be drawn from a 2D vector of TH1D with number of ASSOCIATES bins
+    // This way the TUNE and DEPENDENCY can be looped over, while the data points will be the ASSOCIATES
+    TH1D *vHists[nDependencies];
+    std::cout << "number of associates: " << nAssociates << std::endl;
+
+    // Define a template for this plot to set titles, stats, etc.
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTUNERatiosTemplate_%s", FLAVOUR), "hYieldsTUNERatiosTemplate", nAssociates, 0, nAssociates);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.8);
+
+    TCanvas *cYields = new TCanvas(Form("cYieldsTUNERatios_%s", FLAVOUR), Form("cYieldsTUNERatios_%s", FLAVOUR), 800, 600);
+    cYields->cd();
+    gPad->SetLogy();
+    hYieldsTemplate->SetStats(0);
+    hYieldsTemplate->Draw("PE");
+
+    std::cout << "dividing " << vTUNES[indexNominatorTUNE] << "/" << vTUNES[indexDenominatorTUNE] << std::endl;
+    std::cout << std::endl;
+
+
+    // Loop over ASSOCIATES
+    for (Int_t j=0; j<nAssociates; j++) {
+
+
+        // TODO: fix this bug with associateName and formatting....
+        TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
+        std::string associateName = fileNamesOSandSS.associateOS;
+        std::cout << "starting loop over associate: " << associateName << std::endl;
+        std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+        // Define associate label names for yield plots
+        hYieldsTemplate->GetXaxis()->SetBinLabel(1+j, associateName.c_str());
+        std::cout << std::endl;
+
+
+        // Loop over DEPENDENCIES
+        for (Int_t k=0; k<nDependencies; k++) {
+
+
+            HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
+            std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+
+            vHists[k] = new TH1D(Form("hYields_%s_%i_%i", FLAVOUR, j, k), Form("hYields_%s_%i_%i", FLAVOUR, j, k), nAssociates, 0, nAssociates);
+            vHists[k]->SetBinContent(1+j, vYieldsAndErrors.vYields[indexNominatorTUNE][j][k]/vYieldsAndErrors.vYieldsErrors[indexDenominatorTUNE][j][k]);
+            if (CALCULATE_ERRORS) { 
+                // TODO: implement ratio error in yield code
+                // vHists[k]->SetBinError(1+j, vYieldsAndErrors.vYieldsErrors[i][j][k]);
+                vHists[k]->SetBinError(1+j, propagateRatioError(vYieldsAndErrors.vYields[indexNominatorTUNE][j][k], 
+                                                                   vYieldsAndErrors.vYields[indexDenominatorTUNE][j][k],
+                                                                   vYieldsAndErrors.vYieldsErrors[indexNominatorTUNE][j][k],
+                                                                   vYieldsAndErrors.vYieldsErrors[indexDenominatorTUNE][j][k]));
+            }
+            else {
+                vHists[k]->SetBinError(1+j, 1e-10);
+            }
+            cYields->cd();
+            vHists[k]->SetLineColor(kBlack);
+            vHists[k]->Draw("same PE");
+
+            std::cout << std::endl;
+
+
+        } // Loop over DEPENDENCIES
+
+
+    } // Loop over ASSOCIATES
+
+
+    return;
+
+
+} // drawBalancingPlotsTUNERatios()
+
+
 void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAndErrors vYieldsAndErrors) {
 
 
@@ -688,6 +808,8 @@ int improvedPlotting(const char* configuration) {
         std::string drawFunctionToUse = canvasConfig.drawFunctionToUse;
         std::vector<std::string> vTUNES = canvasConfig.vTUNES;
         std::string FLAVOUR = canvasConfig.FLAVOUR;
+        Int_t indexNominatorTUNE = canvasConfig.indexNominatorTUNE;
+        Int_t indexDenominatorTUNE = canvasConfig.indexDenominatorTUNE;
         // TODO: alternatively, just don't define vYieldsBeauty above, 
         // it's a bit redundant now..
         if (strcmp(FLAVOUR.c_str(), "BEAUTY") == 0)  { vYields = vYieldsBeauty; }
@@ -695,6 +817,11 @@ int improvedPlotting(const char* configuration) {
 
         if (strcmp(drawFunctionToUse.c_str(), "drawBalancingPlots") == 0)  { 
             drawBalancingPlots(configs_from_json,FLAVOUR.c_str(),vYields); 
+        }
+        std::cout << drawFunctionToUse << std::endl;
+        std::cout << indexNominatorTUNE << std::endl;
+        if (strcmp(drawFunctionToUse.c_str(), "drawBalancingPlotsTUNERatios") == 0)  { 
+            drawBalancingPlotsTUNERatios(configs_from_json,FLAVOUR.c_str(),vYields,indexNominatorTUNE,indexDenominatorTUNE); 
         }
         if (strcmp(drawFunctionToUse.c_str(), "drawBalancingBaryonMesonRatioPlots") == 0)  { 
             drawBalancingBaryonMesonRatioPlots(configs_from_json,FLAVOUR.c_str(),vYields); 

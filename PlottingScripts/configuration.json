@@ -142,7 +142,20 @@
         "MONASH",
         "JUNCTIONS"
       ],
-      "FLAVOUR": "BEAUTY"
+      "FLAVOUR": "BEAUTY",
+      "nominator_TUNE": "NONE",
+      "denominator_TUNE": "NONE"
+    },
+    {
+      "canvas_name": "beauty_balancing_JUNCTIONS_over_MONASH",
+      "draw_function_to_use": "drawBalancingPlotsTUNERatios",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "BEAUTY",
+      "nominator_TUNE": "JUNCTIONS",
+      "denominator_TUNE": "MONASH"
     }
   ]
 }
