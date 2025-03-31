@@ -169,6 +169,17 @@
       "denominator_TUNE": "NONE"
     },
     {
+      "canvas_name": "beauty_balancing_baryon_over_meson_ratio_JUNCTIONS_over_MONASH",
+      "draw_function_to_use": "drawBalancingBaryonMesonRatioPlotsTUNERatios",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "BEAUTY",
+      "nominator_TUNE": "JUNCTIONS",
+      "denominator_TUNE": "MONASH"
+    },
+    {
       "canvas_name": "charm_balancing_all",
       "draw_function_to_use": "drawBalancingPlots",
       "TUNES": [
@@ -200,6 +211,17 @@
       "FLAVOUR": "CHARM",
       "nominator_TUNE": "NONE",
       "denominator_TUNE": "NONE"
+    },
+    {
+      "canvas_name": "beauty_balancing_baryon_over_meson_ratio_JUNCTIONS_over_MONASH",
+      "draw_function_to_use": "drawBalancingBaryonMesonRatioPlotsTUNERatios",
+      "TUNES": [
+        "MONASH",
+        "JUNCTIONS"
+      ],
+      "FLAVOUR": "CHARM",
+      "nominator_TUNE": "JUNCTIONS",
+      "denominator_TUNE": "MONASH"
     }
   ]
 }

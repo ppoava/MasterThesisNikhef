@@ -801,6 +801,118 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
 } // drawBalancingBaryonMesonRatioPlots()
 
 
+void drawBalancingBaryonMesonRatioPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAndErrors vYieldsAndErrors,
+                                                  Int_t indexNominatorTUNE, Int_t indexDenominatorTUNE) {
+
+
+    std::cout << "*** Drawing balancing baryon/meson ratio plots with TUNE ratios for " << FLAVOUR << " ***" << std::endl;
+
+
+    // Retrieve settings from configuration.json
+    bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
+    std::string base_dir = configs_from_json.base_dir;
+    std::vector<std::string> vTUNES = configs_from_json.vTUNES;
+    std::vector<TriggerAssociateOSandSS> vTriggerAssociateOSandSS;
+    if (strcmp(FLAVOUR, "BEAUTY") == 0) { vTriggerAssociateOSandSS = configs_from_json.vBeautyTriggerAssociateOSandSS; }
+    if (strcmp(FLAVOUR, "CHARM") == 0)  { vTriggerAssociateOSandSS = configs_from_json.vCharmTriggerAssociateOSandSS; }
+    std::vector<HistogramAndTriggerPtHistogramNames> vHistogramAndTriggerPtHistogramNames = configs_from_json.vHistogramAndTriggerPtHistogramNames;
+
+    std::cout << " and TUNE " << vTUNES[indexNominatorTUNE] << "/" << vTUNES[indexDenominatorTUNE] << " ***" << std::endl;
+
+    Int_t nAssociates = vTriggerAssociateOSandSS.size();
+    Int_t nDependencies = vHistogramAndTriggerPtHistogramNames.size();
+
+    // Values will be drawn from a 2D vector of TH1D with number of DEPENDENCIES bins
+    // This way the TUNE and ASSOCIATE can be looped over, while the data points will be the DEPENDENCIES
+    TH1D *vHists[nAssociates];
+    // TODO: verbose
+    // std::cout << "number of dependencies: " << nDependencies << std::endl;
+
+    // Define a template for this plot to set titles, stats, etc.
+    TH1D *hYieldsTemplate = new TH1D(Form("hYieldsBaryonMesonRatioTUNERatioTemplate_%s", FLAVOUR), Form("hYieldsBaryonMesonRatioTUNERatioTemplate_%s", FLAVOUR), nDependencies, 0, nDependencies);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-1,1e1);
+
+    TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), 800, 600);
+    cYields->cd();
+    hYieldsTemplate->SetStats(0);
+    hYieldsTemplate->Draw("PE");
+
+    // TODO: verbose
+    // std::cout << "starting loop over " << TUNE << std::endl;
+    // std::cout << std::endl;
+
+
+    // Loop over ASSOCIATES
+    for (Int_t j=0; j<nAssociates; j++) {
+
+
+        // TODO: fix this bug with associateName and formatting....
+        TriggerAssociateOSandSS fileNamesOSandSS = vTriggerAssociateOSandSS[j];
+        std::string associateName = fileNamesOSandSS.associateOS;
+        // TODO: one can also define this in the configuration.json (if only interested in some, or more, or e.g. strange baryons)
+        if (associateName != "Lambda_b" && associateName != "Sigma_b0" &&
+            associateName != "Lambda_c(+)-bar" && associateName != "Sigma_c(+)-bar") { continue ;} // only for baryons
+        // TODO: verbose
+        // std::cout << "starting loop over associate: " << associateName << std::endl;
+        // std::cout << "starting loop over OS file: " << fileNamesOSandSS.OS << " and SS file: " << fileNamesOSandSS.SS << std::endl;
+        // std::cout << std::endl;
+
+        // Loop over DEPENDENCIES
+        for (Int_t k=0; k<nDependencies; k++) {
+
+
+            HistogramAndTriggerPtHistogramNames hDPhiAndhTrPtNames = vHistogramAndTriggerPtHistogramNames[k];
+            // TODO: verbose
+            // std::cout << "plotting histogram " << hDPhiAndhTrPtNames.hDPhi << " with trigger pT histogram " << hDPhiAndhTrPtNames.hTrPt << std::endl;
+
+            vHists[j] = new TH1D(Form("hYieldsBaryonMesonRatio_%s_%i_%i", FLAVOUR, j, k), Form("hYieldsBaryonMesonRatio_%s_%i_%i", FLAVOUR, j, k), nDependencies, 0, nDependencies);
+            vHists[j]->SetBinContent(1+k, (vYieldsAndErrors.vYields[indexNominatorTUNE][j][k] / vYieldsAndErrors.vYields[indexNominatorTUNE][0][k])
+                                           / (vYieldsAndErrors.vYields[indexDenominatorTUNE][j][k] / vYieldsAndErrors.vYields[indexDenominatorTUNE][0][k]));
+            if (CALCULATE_ERRORS) { 
+                // Several options for error calculation/propagation
+                // Ratio calculated seperately:
+                // TODO: add this in yield calculation
+                // TODO: also check if this is without bugs (features?) now..
+                // vHists[j]->SetBinError(1+k, vYieldsAndErrors.vYieldsRatioErrors[i][j][k]);
+                vHists[j]->SetBinError(1+k, propagateRatioError(vYieldsAndErrors.vYields[indexNominatorTUNE][j][k]/vYieldsAndErrors.vYields[indexDenominatorTUNE][j][k], 
+                                                                vYieldsAndErrors.vYields[indexNominatorTUNE][0][k]/vYieldsAndErrors.vYields[indexDenominatorTUNE][0][k],
+                                                                vYieldsAndErrors.vYieldsRatioErrors[indexNominatorTUNE][j][k],
+                                                                vYieldsAndErrors.vYieldsRatioErrors[indexDenominatorTUNE][0][k]));
+                // Naive error propagation (assuming no correlation):
+                /*
+                vHists[j]->SetBinError(1+k, propagateRatioError(vYieldsAndErrors.vYields[i][j][k], 
+                                                                    vYieldsAndErrors.vYields[i][0][k],
+                                                                    vYieldsAndErrors.vYieldsErrors[i][j][k],
+                                                                    vYieldsAndErrors.vYieldsErrors[i][0][k]));
+                */
+                // Placeholder; same error as single yield:
+                // vHists[j]->SetBinError(1+k, vYieldsAndErrors.vYieldsErrors[i][j][k]);
+            }
+            else {
+                vHists[j]->SetBinError(1+k, 1e-10);
+            }
+            cYields->cd();
+            vHists[j]->SetLineColor(kBlack);
+            vHists[j]->Draw("same PE");
+
+            hYieldsTemplate->GetXaxis()->SetBinLabel(1+k, (hDPhiAndhTrPtNames.hDPhi).c_str());
+
+            // TODO: verbose
+            // std::cout << std::endl;
+
+
+        } // Loop over DEPENDENCIES
+
+
+    } // Loop over ASSOCIATES
+
+
+    return;
+
+
+} // drawBalancingBaryonMesonRatioPlotsTUNERatios()
+
+
 // Run macro with 
 // >> root 'improvedPlotting.C("configuration_multiplicity.json")'
 int improvedPlotting(const char* configuration) {
@@ -838,6 +950,9 @@ int improvedPlotting(const char* configuration) {
         }
         if (strcmp(drawFunctionToUse.c_str(), "drawBalancingBaryonMesonRatioPlots") == 0)  { 
             drawBalancingBaryonMesonRatioPlots(configs_from_json,FLAVOUR.c_str(),vYields); 
+        }
+        if (strcmp(drawFunctionToUse.c_str(), "drawBalancingBaryonMesonRatioPlotsTUNERatios") == 0)  { 
+            drawBalancingBaryonMesonRatioPlotsTUNERatios(configs_from_json,FLAVOUR.c_str(),vYields,indexNominatorTUNE,indexDenominatorTUNE); 
         }
         // TODO: add other configurations for drawing (e.g. xMax, xMin, etc.)
     }
