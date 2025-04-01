@@ -114,6 +114,7 @@ struct CONFIGS {
 
     // Plotting settings
     std::vector<canvasConfigs> vCanvasConfigs;
+    canvasConfigs canvasConfigs; // filled later, when looping over vCanvasConfigs, given as argument to plotting function
 };
 
 // Function to find the index of a tune name
@@ -571,6 +572,7 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 
 
     // Retrieve settings from configuration.json
+    canvasConfigs canvasConfigs = configs_from_json.canvasConfigs;
     bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
     std::string base_dir = configs_from_json.base_dir;
     std::vector<std::string> vTUNES = configs_from_json.vTUNES;
@@ -591,9 +593,9 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 
     // Define a template for this plot to set titles, stats, etc.
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), Form("hYieldsTemplate_%s", FLAVOUR), nAssociates, 0, nAssociates);
-    hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.8);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(canvasConfigs.yMinCanvas,canvasConfigs.yMaxCanvas);
 
-    TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), 800, 600);
+    TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
     gPad->SetLogy();
     hYieldsTemplate->SetStats(0);
@@ -677,6 +679,7 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
 
 
     // Retrieve settings from configuration.json
+    canvasConfigs canvasConfigs = configs_from_json.canvasConfigs;
     bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
     std::string base_dir = configs_from_json.base_dir;
     std::vector<std::string> vTUNES = configs_from_json.vTUNES; // TODO: put the name of the tune in output for clarity?
@@ -700,7 +703,7 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTUNERatiosTemplate_%s", FLAVOUR), Form("hYieldsTUNERatiosTemplate_%s", FLAVOUR), nAssociates, 0, nAssociates);
     hYieldsTemplate->GetYaxis()->SetRangeUser(1e-1,1e3);
 
-    TCanvas *cYields = new TCanvas(Form("cYieldsTUNERatios_%s", FLAVOUR), Form("cYieldsTUNERatios_%s", FLAVOUR), 800, 600);
+    TCanvas *cYields = new TCanvas(Form("cYieldsTUNERatios_%s", FLAVOUR), Form("cYieldsTUNERatios_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
     gPad->SetLogy();
     hYieldsTemplate->SetStats(0);
@@ -774,6 +777,7 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
 
 
     // Retrieve settings from configuration.json
+    canvasConfigs canvasConfigs = configs_from_json.canvasConfigs;
     bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
     std::string base_dir = configs_from_json.base_dir;
     std::vector<std::string> vTUNES = configs_from_json.vTUNES;
@@ -796,7 +800,7 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsBaryonMesonRatioTemplate_%s", FLAVOUR), Form("hYieldsBaryonMesonRatioTemplate_%s", FLAVOUR), nDependencies, 0, nDependencies);
     hYieldsTemplate->GetYaxis()->SetRangeUser(1e-4,0.2);
 
-    TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), 800, 600);
+    TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
@@ -889,6 +893,7 @@ void drawBalancingBaryonMesonRatioPlotsTUNERatios(CONFIGS configs_from_json, con
 
 
     // Retrieve settings from configuration.json
+    canvasConfigs canvasConfigs = configs_from_json.canvasConfigs;
     bool CALCULATE_ERRORS = configs_from_json.CALCULATE_ERRORS;
     std::string base_dir = configs_from_json.base_dir;
     std::vector<std::string> vTUNES = configs_from_json.vTUNES;
@@ -912,7 +917,7 @@ void drawBalancingBaryonMesonRatioPlotsTUNERatios(CONFIGS configs_from_json, con
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsBaryonMesonRatioTUNERatioTemplate_%s", FLAVOUR), Form("hYieldsBaryonMesonRatioTUNERatioTemplate_%s", FLAVOUR), nDependencies, 0, nDependencies);
     hYieldsTemplate->GetYaxis()->SetRangeUser(1e-1,1e1);
 
-    TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), 800, 600);
+    TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
@@ -1010,13 +1015,14 @@ int improvedPlotting(const char* configuration) {
     std::vector<canvasConfigs> vCanvasConfigs = configs_from_json.vCanvasConfigs;
     std::vector<TCanvas*> vCanvases;
     YieldsAndErrors vYields; // TODO: define variables in loop or above?
-    for (const auto& canvasConfig : vCanvasConfigs) {
-        std::string canvasName = canvasConfig.canvasName;
-        std::string drawFunctionToUse = canvasConfig.drawFunctionToUse;
-        std::vector<std::string> vTUNES = canvasConfig.vTUNES;
-        std::string FLAVOUR = canvasConfig.FLAVOUR;
-        Int_t indexNominatorTUNE = canvasConfig.indexNominatorTUNE;
-        Int_t indexDenominatorTUNE = canvasConfig.indexDenominatorTUNE;
+    for (const auto& canvasConfigs : vCanvasConfigs) {
+        configs_from_json.canvasConfigs = canvasConfigs;
+        std::string canvasName = canvasConfigs.canvasName;
+        std::string drawFunctionToUse = canvasConfigs.drawFunctionToUse;
+        std::vector<std::string> vTUNES = canvasConfigs.vTUNES;
+        std::string FLAVOUR = canvasConfigs.FLAVOUR;
+        Int_t indexNominatorTUNE = canvasConfigs.indexNominatorTUNE;
+        Int_t indexDenominatorTUNE = canvasConfigs.indexDenominatorTUNE;
         // TODO: alternatively, just don't define vYieldsBeauty above, 
         // it's a bit redundant now..
         if (strcmp(FLAVOUR.c_str(), "BEAUTY") == 0)  { vYields = vYieldsBeauty; }

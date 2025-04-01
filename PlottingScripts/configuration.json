@@ -150,8 +150,8 @@
       "write_name": "NONE",
       "x_size_canvas": 800,
       "y_size_canvas": 600,
-      "y_min_axis": -1,
-      "y_max_axis": -1,
+      "y_min_axis": 1e-4,
+      "y_max_axis": 0.8,
       "histogram_minimum": -1,
       "histogram_maximum": -1,
       "set_log_y": true,
@@ -176,7 +176,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -245,7 +245,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -314,7 +314,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -383,7 +383,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -426,8 +426,8 @@
       "write_name": "NONE",
       "x_size_canvas": 800,
       "y_size_canvas": 600,
-      "y_min_axis": -1,
-      "y_max_axis": -1,
+      "y_min_axis": 1e-4,
+      "y_max_axis": 0.8,
       "histogram_minimum": -1,
       "histogram_maximum": -1,
       "set_log_y": true,
@@ -452,7 +452,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -521,7 +521,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -590,7 +590,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
@@ -659,7 +659,7 @@
         },
         {
           "object_name": "JUNCTIONS",
-          "display_name": 3
+          "display_name": 2
         }
       ],
       "dependency_line_styles": [
