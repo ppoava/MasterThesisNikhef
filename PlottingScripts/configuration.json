@@ -133,7 +133,7 @@
       "hDPhi": "hDPhiHH",
       "hTrPt": "hTrPtH"
     }
-    ],
+  ],
   "canvases_to_be_drawn": [
     {
       "canvas_name": "beauty_balancing_all",
@@ -144,7 +144,65 @@
       ],
       "FLAVOUR": "BEAUTY",
       "nominator_TUNE": "NONE",
-      "denominator_TUNE": "NONE"
+      "denominator_TUNE": "NONE",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "beauty_balancing_JUNCTIONS_over_MONASH",
@@ -155,7 +213,65 @@
       ],
       "FLAVOUR": "BEAUTY",
       "nominator_TUNE": "JUNCTIONS",
-      "denominator_TUNE": "MONASH"
+      "denominator_TUNE": "MONASH",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "beauty_balancing_baryon_over_meson_ratio",
@@ -166,7 +282,65 @@
       ],
       "FLAVOUR": "BEAUTY",
       "nominator_TUNE": "NONE",
-      "denominator_TUNE": "NONE"
+      "denominator_TUNE": "NONE",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "beauty_balancing_baryon_over_meson_ratio_JUNCTIONS_over_MONASH",
@@ -177,7 +351,65 @@
       ],
       "FLAVOUR": "BEAUTY",
       "nominator_TUNE": "JUNCTIONS",
-      "denominator_TUNE": "MONASH"
+      "denominator_TUNE": "MONASH",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "charm_balancing_all",
@@ -188,7 +420,65 @@
       ],
       "FLAVOUR": "CHARM",
       "nominator_TUNE": "NONE",
-      "denominator_TUNE": "NONE"
+      "denominator_TUNE": "NONE",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "charm_balancing_JUNCTIONS_over_MONASH",
@@ -199,7 +489,65 @@
       ],
       "FLAVOUR": "CHARM",
       "nominator_TUNE": "JUNCTIONS",
-      "denominator_TUNE": "MONASH"
+      "denominator_TUNE": "MONASH",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "charm_balancing_baryon_over_meson_ratio",
@@ -210,7 +558,65 @@
       ],
       "FLAVOUR": "CHARM",
       "nominator_TUNE": "NONE",
-      "denominator_TUNE": "NONE"
+      "denominator_TUNE": "NONE",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     },
     {
       "canvas_name": "beauty_balancing_baryon_over_meson_ratio_JUNCTIONS_over_MONASH",
@@ -221,7 +627,65 @@
       ],
       "FLAVOUR": "CHARM",
       "nominator_TUNE": "JUNCTIONS",
-      "denominator_TUNE": "MONASH"
+      "denominator_TUNE": "MONASH",
+      "write": false,
+      "write_path": "NONE",
+      "write_name": "NONE",
+      "x_size_canvas": 800,
+      "y_size_canvas": 600,
+      "y_min_axis": -1,
+      "y_max_axis": -1,
+      "histogram_minimum": -1,
+      "histogram_maximum": -1,
+      "set_log_y": true,
+      "x_min_legend": -1,
+      "x_max_legend": -1,
+      "y_min_legend": -1,
+      "y_max_legend": -1,
+      "legend_entries": [
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        },
+        {
+          "object_name": "NONE",
+          "display_name": "NONE"
+        }
+      ],
+      "TUNE_colours": [
+        {
+          "TUNE_name": "MONASH",
+          "colour": 1
+        },
+        {
+          "object_name": "JUNCTIONS",
+          "display_name": 3
+        }
+      ],
+      "dependency_line_styles": [
+        {
+          "dependency_name": "hDPhiLL",
+          "line_style": 1
+        },
+        {
+          "dependency_name": "hDPhiII",
+          "line_style": 2
+        },
+        {
+          "dependency_name": "hDPhiHH",
+          "line_style": 3
+        }
+      ],
+      "baryon_line_styles": [
+        {
+          "baryon_name": "NONE",
+          "line_style": 1
+        },
+        {
+          "baryon_name": "NONE",
+          "line_style": 2
+        }
+      ]
     }
   ]
 }

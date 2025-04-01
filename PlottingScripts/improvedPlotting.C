@@ -16,11 +16,15 @@ using json = nlohmann::json;
 
 // TODO: put structs in a header file (only after plotting is done in configuration.json)
 
+// TODO: make slides with code screenshots and explanation
+
 // TODO: add verbose/debug flags to configuration.json
 
 // TODO: add strangeness to configurations (though won't work; no simulations available; maybe comment it out?)
 
 // TODO: update the other configuration.json files with the "configuration.json" script
+
+// TODO: add documentation describing all configurations in the json
 
 // Define a structure to hold OS and SS correlation file names
 struct TriggerAssociateOSandSS {
@@ -42,14 +46,46 @@ struct YieldsAndErrors {
     std::vector<std::vector<std::vector<Double_t>>> vYieldsRatioErrors;
 };
 
+struct LegendPair {
+    std::string objectName; // the object you want to put (name e.g. = "B+" or "hDPhiLL"; depends on function call)
+    std::string displayName; // what's shown in the legend
+};
+
+struct ColourOrLineStylePair {
+    std::string drawObjectName; // what object are we giving a colour/linestyle?
+    Int_t drawOptionName; // and what are we giving it?
+};
+
 struct canvasConfigs {
     std::string canvasName;
     std::string drawFunctionToUse; // name of functions defined in improvedPlotting()
     std::vector<std::string> vTUNES; // tune to be drawn on given canvas
-    std::string FLAVOUR; // can only be beauty or charm; drawing both on the same is very annoying to implement.. TODO?
+    std::string FLAVOUR; // just one allowed, but could implement with a new function
     Int_t indexNominatorTUNE; // used for TUNE ratio plots, e.g. MONASH/JUNCTIONS to study enhancement explicitly
     Int_t indexDenominatorTUNE;
+
+    // Save output
+    bool write;
+    std::string writePath;
+    std::string writeName;
+
     // TODO: add other canvas settings (e.g. xMin, xMax, setLogy, etc.)
+    Double_t xSizeCanvas; // new TCanvas(xSizeCanvas,ySizeCanvas)
+    Double_t ySizeCanvas;
+    Double_t yMinAxis; // ->SetRangeUser()
+    Double_t yMaxAxis;
+    Double_t hMinimum; // ->SetMinimum()
+    Double_t hMaximum; 
+    bool setLogy;
+    Double_t xMinLegend; // new TLegend(xMinLegend,yMinLegend,xMaxLegend,yMaxLegend)
+    Double_t xMaxLegend;
+    Double_t yMinLegend;
+    Double_t yMaxLegend;
+    // Empty is best set with entries = -1, sizes need to always match!! (TODO: fix this? make this better? necessary?)
+    std::vector<LegendPair> vLegendEntries;
+    std::vector<ColourOrLineStylePair> vColoursTUNES; // give one per tune, needs to be same order as vTUNES above
+    std::vector<ColourOrLineStylePair> vLineStylesDependencies; // give one per dependency, needs to be same order as dependencies given in configurations
+    std::vector<ColourOrLineStylePair> vLineStylesBaryons; // give one per baryon (that is being checked for in the baryon/meson ratio function)
 };
 
 // To be taken from the configuration.json and send to main code
@@ -212,6 +248,50 @@ CONFIGS readConfig(const char* configurations) {
         } else {
             std::cout << nominatorTuneName << " ERROR: TUNE not found in vTUNES." << std::endl;
         }
+        pair.write = configPair["write"].get<bool>();
+        pair.writePath = configPair["write_path"].get<std::string>();
+        pair.writeName = configPair["write_name"].get<std::string>();
+
+        // Plotting settings
+        pair.xSizeCanvas = configPair["x_size_canvas"].get<Double_t>();
+        pair.ySizeCanvas = configPair["y_size_canvas"].get<Double_t>();
+        pair.yMinAxis = configPair["y_min_axis"].get<Double_t>();
+        pair.yMaxAxis = configPair["y_max_axis"].get<Double_t>();
+        pair.hMinimum = configPair["histogram_minimum"].get<Double_t>();
+        pair.hMaximum = configPair["histogram_maximum"].get<Double_t>();
+        pair.setLogy = configPair["set_log_y"].get<bool>();
+        pair.xMinLegend = configPair["x_min_legend"].get<Double_t>();
+        pair.xMaxLegend = configPair["x_max_legend"].get<Double_t>();
+        pair.yMinLegend = configPair["y_min_legend"].get<Double_t>();
+        pair.yMinLegend = configPair["y_max_legend"].get<Double_t>();
+        std::vector<LegendPair> vLegendEntries;
+        for (const auto& configPair : config["legend_entries"]) {
+            LegendPair pair;
+            pair.objectName = configPair["object_name"].get<std::string>();
+            pair.displayName = configPair["display_name"].get<std::string>();
+            vLegendEntries.push_back(pair);
+        }
+        std::vector<ColourOrLineStylePair> vColoursTUNES;
+        for (const auto& configPair : config["TUNE_colours"]) {
+            ColourOrLineStylePair pair;
+            pair.drawObjectName = configPair["TUNE_name"].get<std::string>();
+            pair.drawOptionName = configPair["colour"].get<Int_t>();
+            vColoursTUNES.push_back(pair);
+        }
+        std::vector<ColourOrLineStylePair> vLineStyleDependencies;
+        for (const auto& configPair : config["dependency_line_styles"]) {
+            ColourOrLineStylePair pair;
+            pair.drawObjectName = configPair["dependency_name"].get<std::string>();
+            pair.drawOptionName = configPair["draw_option"].get<Int_t>();
+            vLineStyleDependencies.push_back(pair);
+        }
+        std::vector<ColourOrLineStylePair> vLineStylesBaryons;
+        for (const auto& configPair : config["baryon_line_styles"]) {
+            ColourOrLineStylePair pair;
+            pair.drawObjectName = configPair["baryon_name"].get<std::string>();
+            pair.drawOptionName = configPair["draw_option"].get<Int_t>();
+            vLineStylesBaryons.push_back(pair);
+        }
         // Sumarise configurations in struct, save per canvas
         vCanvasConfigs.push_back(pair);
     }
@@ -222,8 +302,8 @@ CONFIGS readConfig(const char* configurations) {
     }
     std::cout << std::endl;
 
-    // TODO: make a function that prints content of a vector
 
+    // TODO: make a function that prints content of a vector
     CONFIGS configs_from_json;
     configs_from_json.CALCULATE_ERRORS = CALCULATE_ERRORS;
     configs_from_json.nSubSamples = nSubSamples;
@@ -250,8 +330,8 @@ CONFIGS readConfig(const char* configurations) {
     std::cout << "- vBeautyTriggerAssociateOSandSS.size() = " << vBeautyTriggerAssociateOSandSS.size() << std::endl;
     std::cout << "- vCharmTriggerAssociateOSandSS.size() = " << vCharmTriggerAssociateOSandSS.size() << std::endl;
     std::cout << "- vHistogramAndTriggerPtHistogramNames.size() = " << vHistogramAndTriggerPtHistogramNames.size() << std::endl;
-    std::cout << "- indexDenominatorTUNE for 2nd canvas = " << (configs_from_json.vCanvasConfigs[1]).indexDenominatorTUNE << std::endl;
     // vCanvasConfigs
+    // TODO: give overview of canvases to be drawn and their settings etc.
     std::cout << std::endl;
 
     return configs_from_json;
