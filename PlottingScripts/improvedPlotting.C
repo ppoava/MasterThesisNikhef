@@ -593,7 +593,7 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 
     // Define a template for this plot to set titles, stats, etc.
     TH1D *hYieldsTemplate = new TH1D(Form("hYieldsTemplate_%s", FLAVOUR), Form("hYieldsTemplate_%s", FLAVOUR), nAssociates, 0, nAssociates);
-    hYieldsTemplate->GetYaxis()->SetRangeUser(canvasConfigs.yMinCanvas,canvasConfigs.yMaxCanvas);
+    hYieldsTemplate->GetYaxis()->SetRangeUser(canvasConfigs.yMinAxis,canvasConfigs.yMaxAxis);
 
     TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
