@@ -597,7 +597,7 @@ void drawBalancingPlots(CONFIGS configs_from_json, const char* FLAVOUR, YieldsAn
 
     TCanvas *cYields = new TCanvas(Form("cYields_%s", FLAVOUR), Form("cYields_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
-    gPad->SetLogy();
+    if (canvasConfigs.setLogy) { gPad->SetLogy(); }
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
 
@@ -705,7 +705,7 @@ void drawBalancingPlotsTUNERatios(CONFIGS configs_from_json, const char* FLAVOUR
 
     TCanvas *cYields = new TCanvas(Form("cYieldsTUNERatios_%s", FLAVOUR), Form("cYieldsTUNERatios_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
-    gPad->SetLogy();
+    if (canvasConfigs.setLogy) { gPad->SetLogy(); }
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
 
@@ -802,6 +802,7 @@ void drawBalancingBaryonMesonRatioPlots(CONFIGS configs_from_json, const char* F
 
     TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatio_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
+    if (canvasConfigs.setLogy) { gPad->SetLogy(); }
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
 
@@ -919,6 +920,7 @@ void drawBalancingBaryonMesonRatioPlotsTUNERatios(CONFIGS configs_from_json, con
 
     TCanvas *cYields = new TCanvas(Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), Form("cYieldsBaryonMesonRatioTUNERatio_%s", FLAVOUR), canvasConfigs.xSizeCanvas, canvasConfigs.ySizeCanvas);
     cYields->cd();
+    if (canvasConfigs.setLogy) { gPad->SetLogy(); }
     hYieldsTemplate->SetStats(0);
     hYieldsTemplate->Draw("PE");
 
