@@ -4,6 +4,8 @@
 
 Author: Paul Veen (paul.veen@cern.ch)
 
+Presentation with updated (13-05-2025) documentation: https://docs.google.com/presentation/d/1uLaIOoKUsLtDPMpJzauxONb1dARULm3ucuzLlODav8s/edit?usp=sharing
+
 This repository contains C++ scripts that are used to generate and study azimuthal angular
 correlations for charm and beauty hadrons in pp collisions with PYTHIA.
 The goal of this README is to give some insight in how these scripts work and how they can be
