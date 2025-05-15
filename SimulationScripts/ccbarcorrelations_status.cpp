@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 	auto start = chrono::high_resolution_clock::now();
 	
 	// Create output file
-	TFile* output = new TFile(argv[1],"CREATE");
+	TFile* output = new TFile(argv[1],"RECREATE");
 	if(!output->IsOpen()){
 		cout<<"Error: File "<<argv[1]<<"already exists terminating program!"<<endl;
 		return 1;
