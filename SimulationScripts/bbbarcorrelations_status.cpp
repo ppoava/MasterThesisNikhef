@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 	// Create output file
 	TFile* output = new TFile(argv[1],"RECREATE");
 	if(!output->IsOpen()){
-		cout<<"Error: File "<<argv[1]<<"already exists terminating program!"<<endl;
+		cout<<"Error: File "<<argv[1]<<" already exists terminating program!"<<endl;
 		return 1;
 	}
 	
