@@ -47,16 +47,23 @@ Double_t DeltaPhi(Double_t phi1, Double_t phi2) {
 	return fmod(phi1-phi2+2.5*PI,2*PI)-0.5*PI;
 	}
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
 
 	// For larger simulations it is essential to know the duration of the execution of this script
 	// Start time here
 	auto start = chrono::high_resolution_clock::now();
+
+	if(argc != 4) {			
+	        cout<<"Error in the number of arguments provided"<<endl;
+		cout<<"Expected input: ./bbbarcorrelations_status output_name random_number1 random_number2"<<endl;
+		cout<<"Terminating program"<<endl;
+		return 0;
+	}
 	
 	// Create output file
-	TFile* output = new TFile(argv[1],"CREATE");
+	TFile* output = new TFile(argv[1],"RECREATE");
 	if(!output->IsOpen()){
-		cout<<"Error: File "<<argv[1]<<"already exists terminating program!"<<endl;
+		cout<<"Error: File "<<argv[1]<<" already exists terminating program!"<<endl;
 		return 1;
 	}
 	

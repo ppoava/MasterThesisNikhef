@@ -49,9 +49,9 @@ Double_t DeltaPhi(Double_t phi1, Double_t phi2) {
 
 int main(int argc, char** argv) {
 
-	if(argc != 2) { 		
+	if(argc != 4) { 		
 	        cout<<"Error in the number of arguments provided"<<endl;
-		cout<<"Provide only the filepath/name."<<endl;
+		cout<<"Expected input: ./ccbarcorrelations_status output_name random_number1 random_number2"<<endl;
 		cout<<"Terminating program"<<endl;
 		return 0;
 	}
@@ -61,9 +61,9 @@ int main(int argc, char** argv) {
 	auto start = chrono::high_resolution_clock::now();
 	
 	// Create output file
-	TFile* output = new TFile(argv[1],"CREATE");
+	TFile* output = new TFile(argv[1],"RECREATE");
 	if(!output->IsOpen()){
-		cout<<"Error: File "<<argv[1]<<"already exists terminating program!"<<endl;
+		cout<<"Error: File "<<argv[1]<<" already exists terminating program!"<<endl;
 		return 1;
 	}
 	
