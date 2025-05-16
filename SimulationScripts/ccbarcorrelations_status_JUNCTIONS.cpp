@@ -49,9 +49,9 @@ Double_t DeltaPhi(Double_t phi1, Double_t phi2) {
 
 int main(int argc, char** argv) {
 
-	if(argc != 2) { 		
+	if(argc != 4) { 		
 	        cout<<"Error in the number of arguments provided"<<endl;
-		cout<<"Provide only the filepath/name."<<endl;
+		cout<<"Expected input: ./ccbarcorrelations_status_JUNCTIONS output_name random_number1 random_number2"<<endl;
 		cout<<"Terminating program"<<endl;
 		return 0;
 	}
