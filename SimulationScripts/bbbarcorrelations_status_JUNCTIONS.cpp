@@ -25,6 +25,8 @@
 #include "TH1D.h"
 #include "TH1I.h"
 #include "TTree.h"
+// include for mac compilation (getpid)
+#include <unistd.h>
 
 #define PI 3.14159265
 using namespace std;

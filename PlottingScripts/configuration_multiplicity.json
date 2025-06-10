@@ -1,17 +1,17 @@
 {
   "VERBOSE": false,
-  "calculate_errors": false,
-  "bb_bar_complete_root_dir_sub_samples":"/Users/pv280546/alice/GitHub/MasterThesisNikhef/RootFiles/SUBSAMPLES/combined_root_subSamples_bb_250",
-  "cc_bar_complete_root_dir_sub_samples":"/Users/pv280546/alice/GitHub/MasterThesisNikhef/RootFiles/SUBSAMPLES/combined_root_subSamples_cc_250",
+  "calculate_errors": true,
+  "bb_bar_complete_root_dir_sub_samples":"/Users/pv280546/alice/GitHub/SUBSAMPLES_350/combined_root_subSamples_bb_350",
+  "cc_bar_complete_root_dir_sub_samples":"/Users/pv280546/alice/GitHub/SUBSAMPLES_350/combined_root_subSamples_cc_350",
   "nSubSamples": 10,
 
-  "base_dir": "/Users/pv280546/alice/GitHub/MasterThesisNikhef/RootFiles",
+  "base_dir": "/Users/pv280546/alice/GitHub/RootFiles_350",
   "PYTHIA_TUNES": [
       "MONASH",
       "JUNCTIONS"
   ],
-  "bb_bar_complete_root_dir": "complete_root_bb_215",
-  "cc_bar_complete_root_dir": "complete_root_cc_215",
+  "bb_bar_complete_root_dir": "complete_root_bb_350",
+  "cc_bar_complete_root_dir": "complete_root_cc_350",
 
   "beauty_correlations_to_analyse": [
     {
